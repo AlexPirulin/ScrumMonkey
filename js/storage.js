@@ -1,65 +1,68 @@
-// Clave única para LocalStorage
-const STORAGE_KEY = "taskflow_data";
+// js/storage.js
+// Módulo de Persistencia — RF21, RF22, RNF9
+// TaskFlow — Sprint 1
 
-/**
- * Estructura base de la aplicación
- */
-function getDefaultData() {
-  return {
-    projects: [],
-    users: []
-  };
-}
+const STORAGE_KEY = 'taskflow_data';
 
-/**
- * Guardar datos en LocalStorage (RF21)
- */
-export function saveData(data) {
+// Estructura base vacía del sistema
+const defaultData = {
+  projects: [],
+  tasks: [],
+  users: [],
+  recentActivity: []
+};
+
+// RF22 — Cargar datos al iniciar
+function loadData() {
   try {
-    const json = JSON.stringify(data);
-    localStorage.setItem(STORAGE_KEY, json);
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { ...defaultData };
+    return JSON.parse(raw);
   } catch (error) {
-    console.error("Error al guardar datos:", error);
+    console.error('Error al cargar datos:', error);
+    return { ...defaultData };
   }
 }
 
-/**
- * Cargar datos automáticamente (RF22)
- */
-export function loadData() {
+// RF21 — Guardar datos completos
+function saveData(data) {
   try {
-    const json = localStorage.getItem(STORAGE_KEY);
-
-    if (!json) {
-      return getDefaultData();
-    }
-
-    return JSON.parse(json);
-
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
   } catch (error) {
-    console.error("Error al cargar datos:", error);
-    return getDefaultData();
+    console.error('Error al guardar datos:', error);
+    return false;
   }
 }
 
-/**
- * Eliminar todos los datos (RF23)
- */
-export function clearData() {
+// RF23 — Eliminar todos los datos almacenados
+function clearData() {
   try {
     localStorage.removeItem(STORAGE_KEY);
+    return true;
   } catch (error) {
-    console.error("Error al eliminar datos:", error);
+    console.error('Error al limpiar datos:', error);
+    return false;
   }
 }
 
-/**
- * Validación básica antes de guardar (RNF9)
- */
-export function validateData(data) {
-  if (!data) return false;
-  if (!Array.isArray(data.projects)) return false;
-  if (!Array.isArray(data.users)) return false;
+// RNF9 — Verificar si LocalStorage está disponible en el navegador
+function isStorageAvailable() {
+  try {
+    const test = '__storage_test__';
+    localStorage.setItem(test, test);
+    localStorage.removeItem(test);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
-  return true;
+// Inicialización automática — RF22
+function initStorage() {
+  if (!isStorageAvailable()) {
+    console.warn('LocalStorage no disponible. Los datos no se guardarán.');
+    return null;
+  }
+  return loadData();
 }
