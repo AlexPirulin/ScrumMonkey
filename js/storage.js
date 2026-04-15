@@ -1,10 +1,7 @@
-// js/storage.js
-// Módulo de Persistencia — RF21, RF22, RNF9
-// TaskFlow — Sprint 1
-
+// Clave única
 const STORAGE_KEY = 'taskflow_data';
 
-// Estructura base vacía del sistema
+// Estructura base
 const defaultData = {
   projects: [],
   tasks: [],
@@ -12,7 +9,7 @@ const defaultData = {
   recentActivity: []
 };
 
-// RF22 — Cargar datos al iniciar
+// Cargar datos
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -24,7 +21,7 @@ function loadData() {
   }
 }
 
-// RF21 — Guardar datos completos
+// Guardar datos
 function saveData(data) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -35,7 +32,7 @@ function saveData(data) {
   }
 }
 
-// RF23 — Eliminar todos los datos almacenados
+// Limpiar datos
 function clearData() {
   try {
     localStorage.removeItem(STORAGE_KEY);
@@ -46,23 +43,31 @@ function clearData() {
   }
 }
 
-// RNF9 — Verificar si LocalStorage está disponible en el navegador
+// Verificar disponibilidad
 function isStorageAvailable() {
   try {
-    const test = '__storage_test__';
+    const test = '__test__';
     localStorage.setItem(test, test);
     localStorage.removeItem(test);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }
 
-// Inicialización automática — RF22
+// Inicializar
 function initStorage() {
   if (!isStorageAvailable()) {
-    console.warn('LocalStorage no disponible. Los datos no se guardarán.');
+    console.warn('LocalStorage no disponible');
     return null;
   }
   return loadData();
 }
+
+// EXPORTS
+export {
+  loadData,
+  saveData,
+  clearData,
+  initStorage
+};
