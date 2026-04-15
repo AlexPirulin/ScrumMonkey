@@ -1,6 +1,6 @@
 import { initStorage, saveData } from "./storage.js";
 
-// Cargar datos
+// Cargar dato
 let appData = initStorage();
 
 if (!appData) {
