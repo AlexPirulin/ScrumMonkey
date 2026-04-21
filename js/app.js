@@ -75,5 +75,39 @@ function eliminarProyecto(index){
     proyectos.splice(index,1);
     mostrarProyectos();
 }
+
+function addTask(){
+    const name = document.getElementById("taskName").value;
+    const priority = document.getElementById("priority").value;
+    const status = document.getElementById("status").value;
+
+    const newTask = {
+        id: Date.now().toString(),
+        name,
+        priority,
+        status
+    };
+
+    appData.tasks.push(newTask);
+    saveData(appData);
+
+    showTasks();
+}
+
+function showTasks(){
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+
+    appData.tasks.forEach(task => {
+        list.innerHTML += `
+        <li>
+            ${task.name} - ${task.priority} - ${task.status}
+        </li>`;
+    });
+}
+
+document.getElementById("btnTask")
+.addEventListener("click", addTask);
+
 // Evento del botón
 document.getElementById("btnAdd").addEventListener("click", addProject);
