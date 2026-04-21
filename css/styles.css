@@ -1,0 +1,53 @@
+body{
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    margin:0;
+    padding:0;
+}
+
+.contenedor{
+    width: 500px;
+    margin: 50px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px gray;
+}
+
+h1,h2{
+    text-align:center;
+}
+
+input{
+    width: 100%;
+    padding:10px;
+    margin-bottom:10px;
+}
+
+button{
+    width:100%;
+    padding:10px;
+    background:#007bff;
+    color:white;
+    border:none;
+    cursor:pointer;
+    border-radius:5px;
+}
+
+button:hover{
+    background:#0056b3;
+}
+
+li{
+    background:#eee;
+    margin:8px 0;
+    padding:10px;
+    border-radius:5px;
+    list-style:none;
+}
+
+.acciones button{
+    width:auto;
+    margin-right:5px;
+    padding:5px 10px;
+}
