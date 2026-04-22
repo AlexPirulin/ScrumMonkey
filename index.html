@@ -22,12 +22,11 @@
                 <a href="#" class="nav-link"><i class="fas fa-home"></i> Inicio</a>
                 <a href="#" class="nav-link active"><i class="fas fa-check-double"></i> Tareas</a>
                 <a href="#" class="nav-link"><i class="far fa-flag"></i> Proyectos</a>
-                <a href="#" class="nav-link"><i class="far fa-calendar"></i> Calendarios</a>
-                <a href="#" class="nav-link"><i class="far fa-comment-dots"></i> Chat</a>
             </nav>
             
             <div class="nav-right">
-                <button class="icon-btn"><i class="fas fa-search"></i></button>
+                <button id="theme-toggle" class="icon-btn" title="Cambiar tema"><i class="fas fa-moon"></i></button>
+                <button class="icon-btn" title="Buscar"><i class="fas fa-search"></i></button>
                 <button id="nav-add-task" class="btn-primary"><i class="fas fa-plus"></i> Tarea</button>
             </div>
         </header>
@@ -40,7 +39,7 @@
                 
                 <form id="project-form" class="add-form">
                     <input type="text" id="project-input" placeholder="Nuevo proyecto..." required>
-                    <button type="submit"><i class="fas fa-plus"></i></button>
+                    <button type="submit" title="Añadir proyecto"><i class="fas fa-plus"></i></button>
                 </form>
 
                 <ul id="project-list" class="sidebar-list">
@@ -50,11 +49,11 @@
 
         <main class="content">
             <header class="content-header">
-                <h1 id="current-project-title">Selecciona un proyecto <i class="fas fa-caret-down"></i></h1>
+                <h1 id="current-project-title">Selecciona un proyecto</h1>
             </header>
 
             <form id="task-form" class="add-task-form hidden">
-                <input type="text" id="task-input" placeholder="¿Qué necesitas hacer?" required>
+                <input type="text" id="task-input" placeholder="Presiona 'Enter' para añadir..." required>
                 <select id="task-priority" title="Prioridad">
                     <option value="baja">Baja</option>
                     <option value="media" selected>Media</option>

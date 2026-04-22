@@ -1,11 +1,11 @@
 // ==========================================
-// ESTADO Y PERSISTENCIA
+// ESTADO Y PERSISTENCIA (Proyectos y Tema)
 // ==========================================
-let projects = JSON.parse(localStorage.getItem('notionProjectsV3')) || [];
+let projects = JSON.parse(localStorage.getItem('notionProjectsV4')) || [];
 let currentProjectId = null;
 
 function saveToLocalStorage() {
-    localStorage.setItem('notionProjectsV3', JSON.stringify(projects));
+    localStorage.setItem('notionProjectsV4', JSON.stringify(projects));
 }
 
 // ==========================================
@@ -21,6 +21,25 @@ const taskInput = document.getElementById('task-input');
 const taskPriority = document.getElementById('task-priority');
 const taskList = document.getElementById('task-list');
 const navAddTaskBtn = document.getElementById('nav-add-task');
+const themeToggle = document.getElementById('theme-toggle');
+
+// ==========================================
+// LÓGICA DEL MODO OSCURO
+// ==========================================
+const currentTheme = localStorage.getItem('themePreference');
+if (currentTheme === 'dark') {
+    document.body.classList.add('dark-theme');
+    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+}
+
+themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-theme');
+    const isDark = document.body.classList.contains('dark-theme');
+    
+    // Cambiar icono y guardar preferencia
+    themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    localStorage.setItem('themePreference', isDark ? 'dark' : 'light');
+});
 
 // Botón de Navbar "+ Tarea"
 navAddTaskBtn.addEventListener('click', () => {
@@ -50,10 +69,20 @@ projectForm.addEventListener('submit', (e) => {
     saveToLocalStorage();
     projectInput.value = '';
     renderProjects();
+    
+    // Seleccionar automáticamente el proyecto recién creado
+    selectProject(newProject.id);
 });
 
 function renderProjects() {
     projectList.innerHTML = '';
+    
+    // Estado vacío para proyectos
+    if (projects.length === 0) {
+        projectList.innerHTML = `<div class="empty-state">No tienes proyectos aún.<br>¡Crea uno arriba!</div>`;
+        return;
+    }
+
     projects.forEach(project => {
         const li = document.createElement('li');
         li.className = `sidebar-item ${currentProjectId === project.id ? 'active' : ''}`;
@@ -85,7 +114,7 @@ function renderProjects() {
 function selectProject(id) {
     currentProjectId = id;
     const project = projects.find(p => p.id === id);
-    currentProjectTitle.innerHTML = `${project.name} <i class="fas fa-caret-down"></i>`;
+    currentProjectTitle.innerHTML = `${project.name}`;
     taskForm.classList.remove('hidden');
     renderProjects();
     renderTasks();
@@ -93,7 +122,7 @@ function selectProject(id) {
 
 function editProject(id) {
     const project = projects.find(p => p.id === id);
-    const newName = prompt('Editar proyecto:', project.name);
+    const newName = prompt('Editar nombre del proyecto:', project.name);
     if (newName && newName.trim() !== '') {
         project.name = newName.trim();
         saveToLocalStorage();
@@ -103,13 +132,13 @@ function editProject(id) {
 }
 
 function deleteProject(id) {
-    if (confirm('¿Eliminar este proyecto y sus tareas?')) {
+    if (confirm(`¿Estás seguro de eliminar el proyecto y todas sus tareas?`)) {
         projects = projects.filter(p => p.id !== id);
         if (currentProjectId === id) {
             currentProjectId = null;
             taskForm.classList.add('hidden');
-            currentProjectTitle.innerHTML = 'Selecciona un proyecto <i class="fas fa-caret-down"></i>';
-            taskList.innerHTML = '';
+            currentProjectTitle.innerHTML = 'Selecciona un proyecto';
+            taskList.innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i>Selecciona un proyecto en la barra lateral para ver tus tareas.</div>';
         }
         saveToLocalStorage();
         renderProjects();
@@ -134,7 +163,7 @@ taskForm.addEventListener('submit', (e) => {
         status: 'pendiente'
     };
 
-    project.tasks.push(newTask);
+    project.tasks.unshift(newTask); // Añade la nueva tarea al principio de la lista
     saveToLocalStorage();
     taskInput.value = '';
     renderTasks();
@@ -146,6 +175,12 @@ function renderTasks() {
 
     const project = projects.find(p => p.id === currentProjectId);
     
+    // Estado vacío para tareas
+    if (project.tasks.length === 0) {
+        taskList.innerHTML = `<div class="empty-state"><i class="fas fa-clipboard-check"></i>No hay tareas en este proyecto.<br>Añade una usando el formulario de arriba.</div>`;
+        return;
+    }
+
     project.tasks.forEach(task => {
         const div = document.createElement('div');
         div.className = `task-item ${task.status === 'completada' ? 'task-completed' : ''}`;
@@ -179,11 +214,13 @@ function renderTasks() {
         const editBtn = document.createElement('button');
         editBtn.className = 'action-btn';
         editBtn.innerHTML = '<i class="fas fa-pen"></i>';
+        editBtn.title = "Editar tarea";
         editBtn.onclick = () => editTask(task.id);
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'action-btn delete';
         deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        deleteBtn.title = "Eliminar tarea";
         deleteBtn.onclick = () => deleteTask(task.id);
 
         actionsDiv.append(editBtn, deleteBtn);
@@ -215,7 +252,7 @@ function editTask(taskId) {
 }
 
 function deleteTask(taskId) {
-    if(confirm('¿Eliminar esta tarea?')) {
+    if(confirm('¿Seguro que deseas eliminar esta tarea?')) {
         const project = projects.find(p => p.id === currentProjectId);
         project.tasks = project.tasks.filter(t => t.id !== taskId);
         saveToLocalStorage();
@@ -225,3 +262,6 @@ function deleteTask(taskId) {
 
 // Iniciar aplicación
 renderProjects();
+if (!currentProjectId) {
+    taskList.innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i>Selecciona o crea un proyecto en la barra lateral para comenzar.</div>';
+}
