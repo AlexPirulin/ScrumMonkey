@@ -64,10 +64,4 @@ function initStorage() {
   return loadData();
 }
 
-// EXPORTS
-export {
-  loadData,
-  saveData,
-  clearData,
-  initStorage
-};
+

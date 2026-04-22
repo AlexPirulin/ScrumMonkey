@@ -1,5 +1,3 @@
-import { initStorage, saveData } from "./storage.js";
-
 // Cargar dato
 let appData = initStorage();
 
