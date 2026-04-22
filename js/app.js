@@ -29,12 +29,12 @@ function addProject() {
 let proyectos = [];
 let editando = -1;
 
-function guardarProyecto() {
+window.guardarProyecto = function() {
     let input = document.getElementById("nombreProyecto");
     let nombre = input.value.trim();
 
     if(nombre === ""){
-        alert("Escribe un proyecto");
+        alert("No puedes crear un proyecto sin nombre");
         return;
     }
 
@@ -76,10 +76,15 @@ function eliminarProyecto(index){
     mostrarProyectos();
 }
 
-function addTask(){
+window.addTask = function(){
     const name = document.getElementById("taskName").value;
     const priority = document.getElementById("priority").value;
     const status = document.getElementById("status").value;
+
+    if(name === ""){
+        alert("No puedes crear una tarea sin nombre");
+        return;
+    }
 
     const newTask = {
         id: Date.now().toString(),
@@ -105,9 +110,6 @@ function showTasks(){
         </li>`;
     });
 }
-
-document.getElementById("btnTask")
-.addEventListener("click", addTask);
 
 // Evento del botón
 document.getElementById("btnAdd").addEventListener("click", addProject);
