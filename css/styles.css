@@ -13,7 +13,6 @@
     --danger-color: #ef4444;
 }
 
-/* Variables para el Modo Oscuro */
 body.dark-theme {
     --bg-color: #121212;
     --sidebar-bg: #1e1e1e;
@@ -22,7 +21,7 @@ body.dark-theme {
     --text-main: #e5e7eb;
     --text-muted: #9ca3af;
     --border-color: #333333;
-    --accent-color: #3b82f6; /* Un azul un poco más brillante para fondos oscuros */
+    --accent-color: #3b82f6;
     --accent-color-light: #1e293b;
     --tag-bg: #374151;
 }
@@ -39,11 +38,9 @@ body {
     color: var(--text-main);
     height: 100vh;
     overflow: hidden;
-    /* Transición suave para el cambio de tema */
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Layout Principal */
 .app-container {
     display: grid;
     grid-template-areas: 
@@ -54,7 +51,6 @@ body {
     height: 100vh;
 }
 
-/* Navbar */
 .navbar {
     grid-area: navbar;
     background-color: var(--navbar-bg);
@@ -84,12 +80,10 @@ body {
 
 .btn-primary { background-color: var(--accent-color); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background-color 0.2s;}
 
-/* Sidebar */
 .sidebar { grid-area: sidebar; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); padding: 20px 15px; overflow-y: auto; transition: background-color 0.3s, border-color 0.3s;}
 .sidebar-header { margin-bottom: 15px; }
 .sidebar-header h2 { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
-/* Formularios */
 .add-form, .add-task-form { display: flex; gap: 8px; margin-bottom: 15px; }
 .add-form input, .add-task-form input, .add-task-form select { 
     flex: 1; 
@@ -98,7 +92,7 @@ body {
     border-radius: 6px; 
     outline: none; 
     font-size: 14px; 
-    background-color: var(--card-bg); /* Adaptable al modo oscuro */
+    background-color: var(--card-bg);
     color: var(--text-main);
     transition: all 0.3s;
 }
@@ -107,7 +101,6 @@ body {
 .add-form button:hover, .add-task-btn:hover { opacity: 0.9; }
 .add-task-form.hidden { display: none !important; }
 
-/* Listas */
 .sidebar-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
 .sidebar-item { padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 14px; color: var(--text-main); transition: background-color 0.2s;}
 .sidebar-item:hover { background-color: var(--tag-bg); }
@@ -116,7 +109,6 @@ body {
 .content { grid-area: content; padding: 40px; overflow-y: auto; }
 .content-header h1 { font-size: 26px; font-weight: 600; margin-bottom: 20px; }
 
-/* Tareas */
 .task-list { display: flex; flex-direction: column; gap: 10px; }
 .task-item { 
     background-color: var(--card-bg); 
@@ -127,7 +119,7 @@ body {
     border: 1px solid var(--border-color); 
     transition: background-color 0.3s, border-color 0.3s, transform 0.1s;
 }
-.task-item:hover { border-color: var(--text-muted); } /* Refinamiento visual en hover */
+.task-item:hover { border-color: var(--text-muted); }
 
 .task-checkbox { width: 18px; height: 18px; margin-right: 15px; cursor: pointer; border: 2px solid var(--border-color); border-radius: 4px; appearance: none; transition: all 0.2s; background-color: var(--card-bg);}
 .task-checkbox:checked { background-color: var(--success-check); border-color: var(--success-check); background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16"><path fill="white" d="M13.485 1.485a1 1 0 0 1 1.414 1.414l-8.5 8.5a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L6.182 8.182l7.303-7.303Z"/></svg>'); background-size: 80%; background-position: center; background-repeat: no-repeat; }
@@ -142,11 +134,131 @@ body {
 .tag.baja { border-left: 3px solid var(--success-check); }
 
 .actions { display: flex; gap: 8px; margin-left: 15px; opacity: 0; transition: opacity 0.2s; }
-.task-item:hover .actions, .sidebar-item:hover .actions { opacity: 1; } /* Refinamiento: Ocultar botones hasta pasar el mouse */
+.task-item:hover .actions, .sidebar-item:hover .actions { opacity: 1; }
 .action-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; transition: color 0.2s;}
 .action-btn:hover { color: var(--text-main); }
 .action-btn.delete:hover { color: var(--danger-color); }
 
-/* Estados vacíos (UI Intuitiva) */
 .empty-state { text-align: center; padding: 30px 10px; color: var(--text-muted); font-size: 14px; font-style: italic; }
 .empty-state i { font-size: 30px; margin-bottom: 10px; opacity: 0.5; display: block; }
+
+/* ===== NUEVO: Toggle de vista ===== */
+.view-toggle {
+    display: flex;
+    gap: 4px;
+    background-color: var(--tag-bg);
+    border-radius: 8px;
+    padding: 4px;
+    width: fit-content;
+    margin-bottom: 24px;
+    transition: background-color 0.3s;
+}
+.view-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 7px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+.view-btn.active {
+    background-color: var(--card-bg);
+    color: var(--accent-color);
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.view-btn:hover:not(.active) { color: var(--text-main); }
+
+/* ===== NUEVO: Tablero Kanban ===== */
+.kanban-board {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 20px;
+    height: calc(100vh - 220px);
+    align-items: flex-start;
+}
+.kanban-board.hidden { display: none !important; }
+
+.kanban-column {
+    flex: 0 0 260px;
+    background-color: var(--tag-bg);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    border: 1px solid var(--border-color);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.kanban-column.drag-over {
+    border-color: var(--accent-color);
+    background-color: var(--accent-color-light);
+}
+.kanban-col-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 14px 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+}
+.kanban-col-header h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+    flex-grow: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.kanban-col-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.dot-pending  { background-color: #94a3b8; }
+.dot-progress { background-color: #f59e0b; }
+.dot-review   { background-color: #8b5cf6; }
+.dot-done     { background-color: var(--success-check); }
+
+.kanban-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    background-color: var(--text-muted);
+    border-radius: 20px;
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+}
+.kanban-cards {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex-grow: 1;
+    min-height: 60px;
+}
+.kanban-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: grab;
+    transition: box-shadow 0.2s, transform 0.15s, border-color 0.3s, background-color 0.3s;
+    user-select: none;
+}
+.kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.10); transform: translateY(-2px); }
+.kanban-card.dragging { opacity: 0.45; cursor: grabbing; }
+.kanban-card-title { font-size: 13px; font-weight: 500; color: var(--text-main); line-height: 1.4; margin-bottom: 10px; }
+.kanban-card-footer { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.kanban-card-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; }
+.kanban-card:hover .kanban-card-actions { opacity: 1; }
+.kanban-empty { text-align: center; padding: 20px 10px; color: var(--text-muted); font-size: 12px; font-style: italic; opacity: 0.6; }
+.kanban-board::-webkit-scrollbar { height: 6px; }
+.kanban-board::-webkit-scrollbar-track { background: transparent; }
+.kanban-board::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
