@@ -43,7 +43,7 @@
                 </form>
 
                 <ul id="project-list" class="sidebar-list">
-                    </ul>
+                </ul>
             </div>
         </aside>
 
@@ -62,10 +62,56 @@
                 <button type="submit" class="add-task-btn"><i class="fas fa-plus"></i> Añadir</button>
             </form>
 
-            <div class="task-list-container">
+            <!-- Toggle de vista -->
+            <div class="view-toggle">
+                <button id="btn-list-view" class="view-btn active">
+                    <i class="fas fa-list"></i> Lista
+                </button>
+                <button id="btn-kanban-view" class="view-btn">
+                    <i class="fas fa-columns"></i> Kanban
+                </button>
+            </div>
+
+            <!-- Vista Lista (original) -->
+            <div id="list-view" class="task-list-container">
                 <div class="task-section">
-                    <div id="task-list" class="task-list">
-                        </div>
+                    <div id="task-list" class="task-list"></div>
+                </div>
+            </div>
+
+            <!-- Vista Kanban (nuevo) -->
+            <div id="kanban-view" class="kanban-board hidden">
+                <div class="kanban-column" data-status="pendiente">
+                    <div class="kanban-col-header">
+                        <span class="kanban-col-dot dot-pending"></span>
+                        <h3>Pendiente</h3>
+                        <span class="kanban-count" id="count-pendiente">0</span>
+                    </div>
+                    <div class="kanban-cards" id="cards-pendiente"></div>
+                </div>
+                <div class="kanban-column" data-status="en-progreso">
+                    <div class="kanban-col-header">
+                        <span class="kanban-col-dot dot-progress"></span>
+                        <h3>En progreso</h3>
+                        <span class="kanban-count" id="count-en-progreso">0</span>
+                    </div>
+                    <div class="kanban-cards" id="cards-en-progreso"></div>
+                </div>
+                <div class="kanban-column" data-status="revision">
+                    <div class="kanban-col-header">
+                        <span class="kanban-col-dot dot-review"></span>
+                        <h3>Revisión</h3>
+                        <span class="kanban-count" id="count-revision">0</span>
+                    </div>
+                    <div class="kanban-cards" id="cards-revision"></div>
+                </div>
+                <div class="kanban-column" data-status="completada">
+                    <div class="kanban-col-header">
+                        <span class="kanban-col-dot dot-done"></span>
+                        <h3>Completada</h3>
+                        <span class="kanban-count" id="count-completada">0</span>
+                    </div>
+                    <div class="kanban-cards" id="cards-completada"></div>
                 </div>
             </div>
         </main>
