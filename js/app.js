@@ -381,11 +381,17 @@ function moveTaskToStatus(taskId, newStatus) {
 // ==========================================
 renderProjects();
 
+// Forzar estado inicial de vistas (evita que se muestren juntas)
 if (currentView === 'kanban') {
-    btnListView.classList.remove('active');
-    btnKanbanView.classList.add('active');
     listViewEl.classList.add('hidden');
     kanbanViewEl.classList.remove('hidden');
+    btnListView.classList.remove('active');
+    btnKanbanView.classList.add('active');
+} else {
+    kanbanViewEl.classList.add('hidden');
+    listViewEl.classList.remove('hidden');
+    btnKanbanView.classList.remove('active');
+    btnListView.classList.add('active');
 }
 
 if (!currentProjectId) {
