@@ -376,6 +376,14 @@ function moveTaskToStatus(taskId, newStatus) {
     if (task) { task.status = newStatus; saveToLocalStorage(); renderKanban(); }
 }
 
+// Borrar todo
+document.getElementById('btn-clear-all').addEventListener('click', () => {
+    if (confirm('¿Seguro que deseas borrar TODOS los proyectos y tareas? Esta acción no se puede deshacer.')) {
+        localStorage.clear();
+        location.reload();
+    }
+});
+
 // ==========================================
 // INICIAR APLICACIÓN
 // ==========================================
