@@ -142,6 +142,9 @@ body {
 .empty-state { text-align: center; padding: 30px 10px; color: var(--text-muted); font-size: 14px; font-style: italic; }
 .empty-state i { font-size: 30px; margin-bottom: 10px; opacity: 0.5; display: block; }
 
+/* ===== Clase utilitaria ===== */
+.hidden { display: none !important; }
+
 /* ===== NUEVO: Toggle de vista ===== */
 .view-toggle {
     display: flex;
