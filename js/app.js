@@ -3,6 +3,7 @@
 // ==========================================
 let projects = JSON.parse(localStorage.getItem('notionProjectsV4')) || [];
 let currentProjectId = null;
+let currentView = localStorage.getItem('viewPreference') || 'list';
 
 function saveToLocalStorage() {
     localStorage.setItem('notionProjectsV4', JSON.stringify(projects));
@@ -23,6 +24,11 @@ const taskList = document.getElementById('task-list');
 const navAddTaskBtn = document.getElementById('nav-add-task');
 const themeToggle = document.getElementById('theme-toggle');
 
+const listViewEl = document.getElementById('list-view');
+const kanbanViewEl = document.getElementById('kanban-view');
+const btnListView = document.getElementById('btn-list-view');
+const btnKanbanView = document.getElementById('btn-kanban-view');
+
 // ==========================================
 // LÓGICA DEL MODO OSCURO
 // ==========================================
@@ -35,8 +41,6 @@ if (currentTheme === 'dark') {
 themeToggle.addEventListener('click', () => {
     document.body.classList.toggle('dark-theme');
     const isDark = document.body.classList.contains('dark-theme');
-    
-    // Cambiar icono y guardar preferencia
     themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     localStorage.setItem('themePreference', isDark ? 'dark' : 'light');
 });
@@ -50,6 +54,30 @@ navAddTaskBtn.addEventListener('click', () => {
         taskInput.focus();
     }
 });
+
+// ==========================================
+// TOGGLE DE VISTA (Lista / Kanban) — NUEVO
+// ==========================================
+function setView(view) {
+    currentView = view;
+    localStorage.setItem('viewPreference', view);
+    if (view === 'kanban') {
+        listViewEl.classList.add('hidden');
+        kanbanViewEl.classList.remove('hidden');
+        btnListView.classList.remove('active');
+        btnKanbanView.classList.add('active');
+        renderKanban();
+    } else {
+        kanbanViewEl.classList.add('hidden');
+        listViewEl.classList.remove('hidden');
+        btnKanbanView.classList.remove('active');
+        btnListView.classList.add('active');
+        renderTasks();
+    }
+}
+
+btnListView.addEventListener('click', () => setView('list'));
+btnKanbanView.addEventListener('click', () => setView('kanban'));
 
 // ==========================================
 // LÓGICA DE PROYECTOS
@@ -69,15 +97,12 @@ projectForm.addEventListener('submit', (e) => {
     saveToLocalStorage();
     projectInput.value = '';
     renderProjects();
-    
-    // Seleccionar automáticamente el proyecto recién creado
     selectProject(newProject.id);
 });
 
 function renderProjects() {
     projectList.innerHTML = '';
     
-    // Estado vacío para proyectos
     if (projects.length === 0) {
         projectList.innerHTML = `<div class="empty-state">No tienes proyectos aún.<br>¡Crea uno arriba!</div>`;
         return;
@@ -117,7 +142,7 @@ function selectProject(id) {
     currentProjectTitle.innerHTML = `${project.name}`;
     taskForm.classList.remove('hidden');
     renderProjects();
-    renderTasks();
+    setView(currentView);
 }
 
 function editProject(id) {
@@ -139,6 +164,7 @@ function deleteProject(id) {
             taskForm.classList.add('hidden');
             currentProjectTitle.innerHTML = 'Selecciona un proyecto';
             taskList.innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i>Selecciona un proyecto en la barra lateral para ver tus tareas.</div>';
+            kanbanViewEl.querySelectorAll('.kanban-cards').forEach(col => col.innerHTML = '<div class="kanban-empty">Sin tareas</div>');
         }
         saveToLocalStorage();
         renderProjects();
@@ -163,10 +189,11 @@ taskForm.addEventListener('submit', (e) => {
         status: 'pendiente'
     };
 
-    project.tasks.unshift(newTask); // Añade la nueva tarea al principio de la lista
+    project.tasks.unshift(newTask);
     saveToLocalStorage();
     taskInput.value = '';
-    renderTasks();
+
+    if (currentView === 'kanban') renderKanban(); else renderTasks();
 });
 
 function renderTasks() {
@@ -175,7 +202,6 @@ function renderTasks() {
 
     const project = projects.find(p => p.id === currentProjectId);
     
-    // Estado vacío para tareas
     if (project.tasks.length === 0) {
         taskList.innerHTML = `<div class="empty-state"><i class="fas fa-clipboard-check"></i>No hay tareas en este proyecto.<br>Añade una usando el formulario de arriba.</div>`;
         return;
@@ -224,7 +250,6 @@ function renderTasks() {
         deleteBtn.onclick = () => deleteTask(task.id);
 
         actionsDiv.append(editBtn, deleteBtn);
-        
         contentDiv.append(leftContent, actionsDiv);
         div.append(checkbox, contentDiv);
         taskList.appendChild(div);
@@ -247,21 +272,122 @@ function editTask(taskId) {
     if (newTitle && newTitle.trim() !== '') {
         task.title = newTitle.trim();
         saveToLocalStorage();
-        renderTasks();
+        if (currentView === 'kanban') renderKanban(); else renderTasks();
     }
 }
 
 function deleteTask(taskId) {
-    if(confirm('¿Seguro que deseas eliminar esta tarea?')) {
+    if (confirm('¿Seguro que deseas eliminar esta tarea?')) {
         const project = projects.find(p => p.id === currentProjectId);
         project.tasks = project.tasks.filter(t => t.id !== taskId);
         saveToLocalStorage();
-        renderTasks();
+        if (currentView === 'kanban') renderKanban(); else renderTasks();
     }
 }
 
-// Iniciar aplicación
+// ==========================================
+// KANBAN — NUEVO
+// ==========================================
+const KANBAN_STATUSES = ['pendiente', 'en-progreso', 'revision', 'completada'];
+let draggedTaskId = null;
+
+function renderKanban() {
+    if (!currentProjectId) return;
+    const project = projects.find(p => p.id === currentProjectId);
+
+    KANBAN_STATUSES.forEach(status => {
+        const container = document.getElementById(`cards-${status}`);
+        const countEl = document.getElementById(`count-${status}`);
+        const tasks = project.tasks.filter(t => t.status === status);
+
+        container.innerHTML = '';
+        countEl.textContent = tasks.length;
+
+        if (tasks.length === 0) container.innerHTML = `<div class="kanban-empty">Sin tareas</div>`;
+
+        tasks.forEach(task => container.appendChild(createKanbanCard(task)));
+
+        container.ondragover = (e) => {
+            e.preventDefault();
+            container.closest('.kanban-column').classList.add('drag-over');
+        };
+        container.ondragleave = (e) => {
+            if (!container.contains(e.relatedTarget))
+                container.closest('.kanban-column').classList.remove('drag-over');
+        };
+        container.ondrop = (e) => {
+            e.preventDefault();
+            container.closest('.kanban-column').classList.remove('drag-over');
+            if (draggedTaskId) moveTaskToStatus(draggedTaskId, status);
+        };
+    });
+}
+
+function createKanbanCard(task) {
+    const card = document.createElement('div');
+    card.className = 'kanban-card';
+    card.draggable = true;
+
+    card.ondragstart = (e) => {
+        draggedTaskId = task.id;
+        setTimeout(() => card.classList.add('dragging'), 0);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+    card.ondragend = () => {
+        card.classList.remove('dragging');
+        draggedTaskId = null;
+    };
+
+    const title = document.createElement('div');
+    title.className = 'kanban-card-title';
+    title.textContent = task.title;
+
+    const footer = document.createElement('div');
+    footer.className = 'kanban-card-footer';
+
+    const badge = document.createElement('span');
+    badge.className = `tag ${task.priority}`;
+    badge.textContent = task.priority;
+
+    const actions = document.createElement('div');
+    actions.className = 'kanban-card-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'action-btn';
+    editBtn.innerHTML = '<i class="fas fa-pen"></i>';
+    editBtn.title = 'Editar';
+    editBtn.onclick = (e) => { e.stopPropagation(); editTask(task.id); };
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'action-btn delete';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    deleteBtn.title = 'Eliminar';
+    deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
+
+    actions.append(editBtn, deleteBtn);
+    footer.append(badge, actions);
+    card.append(title, footer);
+    return card;
+}
+
+function moveTaskToStatus(taskId, newStatus) {
+    const project = projects.find(p => p.id === currentProjectId);
+    const task = project.tasks.find(t => t.id === taskId);
+    if (task) { task.status = newStatus; saveToLocalStorage(); renderKanban(); }
+}
+
+// ==========================================
+// INICIAR APLICACIÓN
+// ==========================================
 renderProjects();
+
+if (currentView === 'kanban') {
+    btnListView.classList.remove('active');
+    btnKanbanView.classList.add('active');
+    listViewEl.classList.add('hidden');
+    kanbanViewEl.classList.remove('hidden');
+}
+
 if (!currentProjectId) {
     taskList.innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i>Selecciona o crea un proyecto en la barra lateral para comenzar.</div>';
 }
