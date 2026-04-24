@@ -289,3 +289,61 @@ body {
     background-color: var(--danger-color);
     color: white;
 }
+/* ==========================================
+   ANIMACIONES INTUITIVAS PARA BOTONES
+   ========================================== */
+
+/* 1. Efecto de "pulsación" general (Clic) */
+button:active, 
+.nav-link:active, 
+.task-checkbox:active {
+    transform: scale(0.92) !important;
+    transition: transform 0.1s ease;
+}
+
+/* 2. Mejoras en botones de acción (Editar / Eliminar) */
+.action-btn {
+    /* Agregamos una transición más fluida con efecto rebote */
+    transition: color 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s;
+    border-radius: 6px;
+    padding: 6px; /* Aumentamos ligeramente el área de clic */
+}
+
+.action-btn:hover {
+    transform: scale(1.15); /* Crece ligeramente */
+    background-color: var(--border-color); /* Fondo sutil para indicar que es interactivo */
+}
+
+/* Efecto específico para el botón de eliminar (basura) */
+.action-btn.delete:hover {
+    transform: scale(1.15) rotate(8deg); /* Pequeña inclinación de advertencia */
+}
+
+/* 3. Animación para botones principales (Añadir / Nueva Tarea) */
+.add-form button, .add-task-btn, .btn-primary {
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.add-form button:hover, .add-task-btn:hover, .btn-primary:hover {
+    opacity: 1;
+    transform: translateY(-2px); /* Se levanta un poco hacia el usuario */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* Proyecta una sombra suave */
+}
+
+/* 4. Animación para los Iconos del Navbar */
+.icon-btn {
+    transition: color 0.2s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.icon-btn:hover {
+    transform: scale(1.15); /* Crece para indicar foco */
+}
+
+/* 5. Transición suave para el checkbox personalizado */
+.task-checkbox {
+    transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.task-checkbox:hover {
+    transform: scale(1.1);
+}
