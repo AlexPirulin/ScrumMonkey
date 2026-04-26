@@ -347,3 +347,132 @@ button:active,
 .task-checkbox:hover {
     transform: scale(1.1);
 }
+/* ==========================================
+   NUEVA BARRA LATERAL (ESTILO IMAGEN)
+   ========================================== */
+
+/* Ajustes a la barra lateral base */
+.sidebar {
+    padding: 20px 10px; /* Reducimos un poco el padding lateral para aprovechar el espacio */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Menú superior (Mi día, Calendario, etc.) */
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sidebar-menu-item {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-main);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.sidebar-menu-item i {
+    width: 24px;
+    color: var(--text-muted);
+    font-size: 16px;
+    margin-right: 8px;
+    text-align: center;
+}
+
+.sidebar-menu-item:hover {
+    background-color: var(--tag-bg);
+}
+
+/* Etiquetas/Badges con números */
+.badge {
+    background-color: var(--border-color);
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: auto;
+    font-weight: 600;
+}
+
+.badge-blue {
+    background-color: var(--accent-color);
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: auto;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Botón "Crea una vista" */
+.add-view-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+    transition: color 0.2s;
+}
+
+.add-view-btn:hover {
+    color: var(--text-main);
+}
+
+/* Divisor de secciones */
+.sidebar-divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 15px 12px;
+}
+
+/* Cabecera de "Mis listas" */
+.sidebar-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+    margin-bottom: 15px;
+}
+
+.sidebar-header-flex h2 {
+    font-size: 15px;
+    color: var(--text-main);
+    font-weight: 600;
+    text-transform: none; /* Quitamos las mayúsculas para que se vea como la imagen */
+    letter-spacing: normal;
+}
+
+.icon-btn-small {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.icon-btn-small:hover {
+    background-color: var(--tag-bg);
+    color: var(--text-main);
+}
+
+.sidebar-form {
+    margin: 0 10px 15px 10px;
+}

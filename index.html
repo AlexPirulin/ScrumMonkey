@@ -32,21 +32,41 @@
         </header>
 
         <aside class="sidebar">
+            <div class="sidebar-menu">
+                <a href="#" class="sidebar-menu-item">
+                    <i class="fas fa-sun"></i> Mi día <span class="badge">1</span>
+                </a>
+                <a href="#" class="sidebar-menu-item">
+                    <i class="far fa-calendar-alt"></i> Próximos 7 días <span class="badge">1</span>
+                </a>
+                <a href="#" class="sidebar-menu-item">
+                    <i class="fas fa-tasks"></i> Todas mis tareas <span class="badge">1</span>
+                </a>
+                <a href="#" class="sidebar-menu-item">
+                    <i class="far fa-calendar"></i> Mi calendario <span class="badge-blue">Beta</span>
+                </a>
+                <button class="add-view-btn"><i class="fas fa-plus"></i> Crea una vista</button>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
             <div class="sidebar-section">
-                <div class="sidebar-header">
-                    <h2>Proyectos</h2>
+                <div class="sidebar-header-flex">
+                    <h2>Mis listas <i class="fas fa-lock" style="font-size: 10px; color: var(--text-muted); margin-left: 5px;"></i></h2>
+                    <button class="icon-btn-small" onclick="document.getElementById('project-input').focus()" title="Añadir lista">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
                 
-                <form id="project-form" class="add-form">
-                    <input type="text" id="project-input" placeholder="Nuevo proyecto..." required>
-                    <button type="submit" title="Añadir proyecto"><i class="fas fa-plus"></i></button>
+                <form id="project-form" class="add-form sidebar-form">
+                    <input type="text" id="project-input" placeholder="Nueva lista..." required>
+                    <button type="submit" title="Añadir"><i class="fas fa-plus"></i></button>
                 </form>
 
                 <ul id="project-list" class="sidebar-list">
                 </ul>
             </div>
 
-            <!-- Zona de peligro -->
             <div class="danger-zone">
                 <button id="btn-clear-all" class="btn-danger">
                     <i class="fas fa-trash-alt"></i> Borrar todo
@@ -69,7 +89,6 @@
                 <button type="submit" class="add-task-btn"><i class="fas fa-plus"></i> Añadir</button>
             </form>
 
-            <!-- Toggle de vista -->
             <div class="view-toggle">
                 <button id="btn-list-view" class="view-btn active">
                     <i class="fas fa-list"></i> Lista
@@ -79,14 +98,12 @@
                 </button>
             </div>
 
-            <!-- Vista Lista (original) -->
             <div id="list-view" class="task-list-container">
                 <div class="task-section">
                     <div id="task-list" class="task-list"></div>
                 </div>
             </div>
 
-            <!-- Vista Kanban (nuevo) -->
             <div id="kanban-view" class="kanban-board hidden">
                 <div class="kanban-column" data-status="pendiente">
                     <div class="kanban-col-header">
