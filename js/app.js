@@ -30,6 +30,77 @@ const btnListView = document.getElementById('btn-list-view');
 const btnKanbanView = document.getElementById('btn-kanban-view');
 
 // ==========================================
+// MONKEY-13: GESTIÓN DE USUARIOS
+// ==========================================
+let users = JSON.parse(localStorage.getItem('notionUsers')) || [];
+
+function saveUsers() {
+    localStorage.setItem('notionUsers', JSON.stringify(users));
+}
+
+function addUser(name) {
+    const trimmed = name.trim();
+    if (!trimmed) return false;
+    if (users.find(u => u.name.toLowerCase() === trimmed.toLowerCase())) {
+        alert('Ya existe un usuario con ese nombre.');
+        return false;
+    }
+    users.push({ id: Date.now().toString(), name: trimmed });
+    saveUsers();
+    return true;
+}
+
+function deleteUser(userId) {
+    if (!confirm('¿Eliminar este usuario? Se quitará de las tareas asignadas.')) return;
+    users = users.filter(u => u.id !== userId);
+    saveUsers();
+    // Quitar el usuario de todas las tareas que lo tengan asignado
+    projects.forEach(project => {
+        project.tasks.forEach(task => {
+            if (task.assignedTo === userId) task.assignedTo = null;
+        });
+    });
+    saveToLocalStorage();
+    renderUserList();
+}
+
+function renderUserList() {
+    const list = document.getElementById('user-list');
+    if (!list) return;
+    list.innerHTML = '';
+    if (users.length === 0) {
+        list.innerHTML = '<li class="empty-state" style="font-size:12px; padding: 8px 0;">Sin usuarios aún.</li>';
+        return;
+    }
+    users.forEach(user => {
+        const li = document.createElement('li');
+        li.className = 'sidebar-item';
+        li.style.justifyContent = 'space-between';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.innerHTML = `<i class="fas fa-user" style="margin-right:6px;"></i>${user.name}`;
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'action-btn delete';
+        delBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        delBtn.onclick = () => deleteUser(user.id);
+
+        li.append(nameSpan, delBtn);
+        list.appendChild(li);
+    });
+}
+
+// Formulario de usuario
+document.getElementById('user-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = document.getElementById('user-input');
+    if (addUser(input.value)) {
+        input.value = '';
+        renderUserList();
+    }
+});
+
+// ==========================================
 // LÓGICA DEL MODO OSCURO
 // ==========================================
 const currentTheme = localStorage.getItem('themePreference');
@@ -234,6 +305,17 @@ function renderTasks() {
         leftContent.style.gap = '15px';
         leftContent.append(titleSpan, priorityBadge);
 
+        // MONKEY-14: Mostrar responsable en vista lista
+        const assignedUser = users.find(u => u.id === task.assignedTo);
+        if (assignedUser) {
+            const assignBadge = document.createElement('span');
+            assignBadge.className = 'tag';
+            assignBadge.style.background = 'var(--accent-blue, #4a90e2)';
+            assignBadge.style.color = '#fff';
+            assignBadge.innerHTML = `<i class="fas fa-user" style="margin-right:4px;"></i>${assignedUser.name}`;
+            leftContent.appendChild(assignBadge);
+        }
+
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'actions';
 
@@ -268,12 +350,26 @@ function editTask(taskId) {
     const project = projects.find(p => p.id === currentProjectId);
     const task = project.tasks.find(t => t.id === taskId);
     const newTitle = prompt('Editar tarea:', task.title);
-    
     if (newTitle && newTitle.trim() !== '') {
         task.title = newTitle.trim();
-        saveToLocalStorage();
-        if (currentView === 'kanban') renderKanban(); else renderTasks();
     }
+
+    // MONKEY-14: Asignar responsable al editar
+    if (users.length > 0) {
+        const options = users.map((u, i) => `${i + 1}. ${u.name}`).join('\n');
+        const current = users.findIndex(u => u.id === task.assignedTo);
+        const choice = prompt(
+            `Asignar responsable (escribe el número, 0 para ninguno):\n${options}`,
+            current >= 0 ? current + 1 : 0
+        );
+        if (choice !== null) {
+            const idx = parseInt(choice) - 1;
+            task.assignedTo = (idx >= 0 && users[idx]) ? users[idx].id : null;
+        }
+    }
+
+    saveToLocalStorage();
+    if (currentView === 'kanban') renderKanban(); else renderTasks();
 }
 
 function deleteTask(taskId) {
@@ -366,6 +462,17 @@ function createKanbanCard(task) {
 
     actions.append(editBtn, deleteBtn);
     footer.append(badge, actions);
+    
+    // MONKEY-14: Mostrar responsable en Kanban
+    const assignedUser = users.find(u => u.id === task.assignedTo);
+    if (assignedUser) {
+        const assignBadge = document.createElement('span');
+        assignBadge.className = 'tag';
+        assignBadge.style.background = 'var(--accent-blue, #4a90e2)';
+        assignBadge.style.color = '#fff';
+        assignBadge.innerHTML = `<i class="fas fa-user" style="margin-right:4px;"></i>${assignedUser.name}`;
+        footer.insertBefore(assignBadge, actions);
+    }
     card.append(title, footer);
     return card;
 }
@@ -388,6 +495,7 @@ document.getElementById('btn-clear-all').addEventListener('click', () => {
 // INICIAR APLICACIÓN
 // ==========================================
 renderProjects();
+renderUserList(); // MONKEY-13
 
 // Forzar estado inicial de vistas (evita que se muestren juntas)
 if (currentView === 'kanban') {

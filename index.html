@@ -67,6 +67,25 @@
                 </ul>
             </div>
 
+            <!-- MONKEY-13: Sección de usuarios -->
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-header-flex">
+                    <h2>Usuarios <i class="fas fa-users" style="font-size: 10px; color: var(--text-muted); margin-left: 5px;"></i></h2>
+                    <button class="icon-btn-small" onclick="document.getElementById('user-input').focus()" title="Añadir usuario">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+
+                <form id="user-form" class="add-form sidebar-form">
+                    <input type="text" id="user-input" placeholder="Nuevo usuario..." required>
+                    <button type="submit" title="Añadir"><i class="fas fa-plus"></i></button>
+                </form>
+
+                <ul id="user-list" class="sidebar-list"></ul>
+            </div>
+
             <div class="danger-zone">
                 <button id="btn-clear-all" class="btn-danger">
                     <i class="fas fa-trash-alt"></i> Borrar todo
