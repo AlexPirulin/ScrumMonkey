@@ -9,206 +9,148 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
-    <div class="app-container">
-        <header class="navbar">
+
+    <div id="login-screen" class="login-overlay hidden">
+        <div class="login-card">
+            <h2>Bienvenido</h2>
+            <div class="user-select-container">
+                <p class="text-muted">Selecciona tu usuario:</p>
+                <ul id="login-user-list" class="login-user-list"></ul>
+            </div>
+            <div class="divider">o crea uno nuevo</div>
+            <form id="login-new-user-form">
+                <input type="text" id="login-new-user-input" placeholder="Nombre de usuario..." required>
+                <button type="submit" class="btn-primary w-100">Ingresar</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="app-container hidden">
+        <header class="top-navbar">
             <div class="nav-left">
-                <div class="profile-avatars">
-                    <div class="avatar dark">A</div>
-                    <div class="avatar grey">A<span class="status-dot"></span></div>
+                <div class="profile-container" id="profile-container">
+                    <div class="profile-avatars" id="profile-avatar-btn" title="Gestionar usuario">
+                        <div class="avatar dark" id="current-user-avatar">U</div>
+                    </div>
+                    <div id="user-dropdown" class="user-dropdown hidden">
+                        <div class="dropdown-header">Cambiar de usuario</div>
+                        <ul id="dropdown-user-list"></ul>
+                        <div class="dropdown-divider"></div>
+                        <button id="btn-logout" class="dropdown-item text-danger">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                        </button>
+                    </div>
                 </div>
                 <button class="icon-btn"><i class="far fa-bell"></i></button>
             </div>
             
-            <nav class="nav-center">
+            <nav class="nav-center-pills">
                 <a href="#" class="nav-link"><i class="fas fa-home"></i> Inicio</a>
-                <a href="#" class="nav-link active"><i class="fas fa-check-double"></i> Tareas</a>
+                <a href="#" class="nav-link active"><i class="fas fa-check"></i> Tareas</a>
                 <a href="#" class="nav-link"><i class="far fa-flag"></i> Proyectos</a>
+                <a href="#" class="nav-link"><i class="far fa-calendar"></i> Calendarios</a>
             </nav>
             
             <div class="nav-right">
                 <button id="theme-toggle" class="icon-btn" title="Cambiar tema"><i class="fas fa-moon"></i></button>
                 <button class="icon-btn" title="Buscar"><i class="fas fa-search"></i></button>
-                <button id="nav-add-task" class="btn-primary"><i class="fas fa-plus"></i> Tarea</button>
+                <button id="nav-add-task" class="btn-primary pill"><i class="fas fa-plus"></i> Tarea</button>
             </div>
         </header>
 
-        <aside class="sidebar">
-            <div class="sidebar-menu">
-                <a href="#" class="sidebar-menu-item">
-                    <i class="fas fa-sun"></i> Mi día <span class="badge">1</span>
-                </a>
-                <a href="#" class="sidebar-menu-item">
-                    <i class="far fa-calendar-alt"></i> Próximos 7 días <span class="badge">1</span>
-                </a>
-                <a href="#" class="sidebar-menu-item">
-                    <i class="fas fa-tasks"></i> Todas mis tareas <span class="badge">1</span>
-                </a>
-                <a href="#" class="sidebar-menu-item">
-                    <i class="far fa-calendar"></i> Mi calendario <span class="badge-blue">Beta</span>
-                </a>
-                <button class="add-view-btn"><i class="fas fa-plus"></i> Crea una vista</button>
-            </div>
-
-            <div class="sidebar-divider"></div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-header-flex">
-                    <h2>Mis listas <i class="fas fa-lock" style="font-size: 10px; color: var(--text-muted); margin-left: 5px;"></i></h2>
-                    <button class="icon-btn-small" onclick="document.getElementById('project-input').focus()" title="Añadir lista">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
+        <div class="main-layout">
+            <aside class="sidebar">
+                <h2 class="sidebar-main-title">Tasks</h2>
                 
-                <form id="project-form" class="add-form sidebar-form">
-                    <input type="text" id="project-input" placeholder="Nueva lista..." required>
-                    <button type="submit" title="Añadir"><i class="fas fa-plus"></i></button>
-                </form>
-
-                <ul id="project-list" class="sidebar-list">
-                </ul>
-            </div>
-
-            <!-- MONKEY-13: Sección de usuarios -->
-            <div class="sidebar-divider"></div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-header-flex">
-                    <h2>Usuarios <i class="fas fa-users" style="font-size: 10px; color: var(--text-muted); margin-left: 5px;"></i></h2>
-                    <button class="icon-btn-small" onclick="document.getElementById('user-input').focus()" title="Añadir usuario">
-                        <i class="fas fa-plus"></i>
-                    </button>
+                <div class="sidebar-section">
+                    <ul id="project-list" class="sidebar-list">
+                        </ul>
                 </div>
 
-                <form id="user-form" class="add-form sidebar-form">
-                    <input type="text" id="user-input" placeholder="Nuevo usuario..." required>
-                    <button type="submit" title="Añadir"><i class="fas fa-plus"></i></button>
+                <div class="sidebar-divider"></div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-header-flex">
+                        <h3 class="sidebar-subtitle"><i class="fas fa-folder-plus"></i> Nuevo Proyecto</h3>
+                    </div>
+                    <form id="project-form" class="add-form sidebar-form">
+                        <input type="text" id="project-input" placeholder="Nombre..." required>
+                        <button type="submit" title="Añadir"><i class="fas fa-plus"></i></button>
+                    </form>
+                </div>
+
+                <div class="sidebar-bottom">
+                    <button id="btn-clear-all" class="btn-danger w-100 pill">
+                        <i class="fas fa-trash-alt"></i> Borrar datos
+                    </button>
+                </div>
+            </aside>
+
+            <main class="content">
+                <header class="content-header">
+                    <h1 id="current-project-title">Selecciona un proyecto</h1>
+                    <div class="view-toggle">
+                        <button id="btn-list-view" class="view-btn active"><i class="fas fa-list"></i> Lista</button>
+                        <button id="btn-kanban-view" class="view-btn"><i class="fas fa-columns"></i> Kanban</button>
+                    </div>
+                </header>
+
+                <div class="list-headers">
+                    <span>Nombre de la tarea</span>
+                    <div class="list-headers-right">
+                        <span>Estado</span>
+                        <span>Prioridad</span>
+                        <span>Responsable</span>
+                    </div>
+                </div>
+
+                <form id="task-form" class="add-task-form hidden">
+                    <input type="text" id="task-input" placeholder="Escribe el nombre de la tarea y presiona Enter..." required>
+                    <select id="task-priority" title="Prioridad">
+                        <option value="baja">Baja</option>
+                        <option value="media" selected>Media</option>
+                        <option value="alta">Alta</option>
+                    </select>
+                    <button type="submit" class="btn-primary pill"><i class="fas fa-plus"></i></button>
                 </form>
 
-                <ul id="user-list" class="sidebar-list"></ul>
-            </div><div class="sidebar-divider"></div>
-
-            <div class="storage-actions" style="display: flex; flex-direction: column; gap: 8px; padding: 0 12px; margin-bottom: 15px;">
-                <button id="btn-export-json" class="btn-primary" style="background-color: var(--accent-color); width: 100%;">
-                    <i class="fas fa-download"></i> Exportar Datos
-                </button>
-                
-                <button id="btn-import-trigger" class="sidebar-menu-item" style="border: 1px solid var(--border-color); background: var(--card-bg); cursor: pointer; width: 100%; justify-content: center;">
-                    <i class="fas fa-upload"></i> Importar Datos
-                </button>
-                
-                <input type="file" id="input-import-json" accept=".json" style="display: none;">
-            </div>
-
-            <div class="danger-zone">
-                <button id="btn-clear-all" class="btn-danger">
-                    <i class="fas fa-trash-alt"></i> Borrar todo
-                </button>
-            </div>
-        </aside>
-
-        <main class="content">
-            <header class="content-header">
-                <h1 id="current-project-title">Selecciona un proyecto</h1>
-            </header>
-
-            <form id="task-form" class="add-task-form hidden">
-                <input type="text" id="task-input" placeholder="Presiona 'Enter' para añadir..." required>
-                <select id="task-priority" title="Prioridad">
-                    <option value="baja">Baja</option>
-                    <option value="media" selected>Media</option>
-                    <option value="alta">Alta</option>
-                </select>
-                <button type="submit" class="add-task-btn"><i class="fas fa-plus"></i> Añadir</button>
-            </form>
-
-            <div class="view-toggle">
-                <button id="btn-list-view" class="view-btn active">
-                    <i class="fas fa-list"></i> Lista
-                </button>
-                <button id="btn-kanban-view" class="view-btn">
-                    <i class="fas fa-columns"></i> Kanban
-                </button>
-            </div>
-
-            <div id="list-view" class="task-list-container">
-                <div class="task-section">
+                <div id="list-view" class="task-list-container">
                     <div id="task-list" class="task-list"></div>
                 </div>
-            </div>
 
-            <div id="kanban-view" class="kanban-board hidden">
-                <div class="kanban-column" data-status="pendiente">
-                    <div class="kanban-col-header">
-                        <span class="kanban-col-dot dot-pending"></span>
-                        <h3>Pendiente</h3>
-                        <span class="kanban-count" id="count-pendiente">0</span>
+                <div id="kanban-view" class="kanban-board hidden">
+                    <div class="kanban-column" data-status="pendiente">
+                        <div class="kanban-col-header"><h3>Pendiente <span id="count-pendiente">0</span></h3></div>
+                        <div class="kanban-cards" id="cards-pendiente"></div>
                     </div>
-                    <div class="kanban-cards" id="cards-pendiente"></div>
-                </div>
-                <div class="kanban-column" data-status="en-progreso">
-                    <div class="kanban-col-header">
-                        <span class="kanban-col-dot dot-progress"></span>
-                        <h3>En progreso</h3>
-                        <span class="kanban-count" id="count-en-progreso">0</span>
+                    <div class="kanban-column" data-status="en-progreso">
+                        <div class="kanban-col-header"><h3>En progreso <span id="count-en-progreso">0</span></h3></div>
+                        <div class="kanban-cards" id="cards-en-progreso"></div>
                     </div>
-                    <div class="kanban-cards" id="cards-en-progreso"></div>
-                </div>
-                <div class="kanban-column" data-status="revision">
-                    <div class="kanban-col-header">
-                        <span class="kanban-col-dot dot-review"></span>
-                        <h3>Revisión</h3>
-                        <span class="kanban-count" id="count-revision">0</span>
+                    <div class="kanban-column" data-status="revision">
+                        <div class="kanban-col-header"><h3>Revisión <span id="count-revision">0</span></h3></div>
+                        <div class="kanban-cards" id="cards-revision"></div>
                     </div>
-                    <div class="kanban-cards" id="cards-revision"></div>
-                </div>
-                <div class="kanban-column" data-status="completada">
-                    <div class="kanban-col-header">
-                        <span class="kanban-col-dot dot-done"></span>
-                        <h3>Completada</h3>
-                        <span class="kanban-count" id="count-completada">0</span>
-                    </div>
-                    <div class="kanban-cards" id="cards-completada"></div>
-                </div>
-            </div>
-            <!-- MONKEY-21: Estadísticas -->
-            <div id="stats-section" class="stats-section hidden">
-                <h2 class="stats-title"><i class="fas fa-chart-bar"></i> Estadísticas del proyecto</h2>
-                <div class="stats-cards">
-                    <div class="stat-card">
-                        <span class="stat-number" id="stat-total">0</span>
-                        <span class="stat-label">Total de tareas</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-number" id="stat-completed">0</span>
-                        <span class="stat-label">Completadas</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-number" id="stat-pending">0</span>
-                        <span class="stat-label">Pendientes</span>
-                    </div>
-                    <div class="stat-card highlight">
-                        <span class="stat-number" id="stat-percent">0%</span>
-                        <span class="stat-label">Avance</span>
+                    <div class="kanban-column" data-status="completada">
+                        <div class="kanban-col-header"><h3>Completada <span id="count-completada">0</span></h3></div>
+                        <div class="kanban-cards" id="cards-completada"></div>
                     </div>
                 </div>
-                <div class="charts-row">
-                    <div class="chart-box">
-                        <h3>Progreso general</h3>
-                        <canvas id="chart-donut"></canvas>
-                    </div>
-                    <div class="chart-box">
-                        <h3>Tareas por prioridad</h3>
-                        <canvas id="chart-priority"></canvas>
-                    </div>
-                    <div class="chart-box">
-                        <h3>Tareas por estado</h3>
-                        <canvas id="chart-status"></canvas>
+
+                <div id="stats-section" class="stats-section hidden">
+                    <h2 class="sidebar-subtitle" style="margin-top:20px;"><i class="fas fa-chart-pie"></i> Resumen</h2>
+                    <div class="charts-row">
+                        <div class="chart-box"><canvas id="chart-donut"></canvas></div>
+                        <div class="chart-box"><canvas id="chart-priority"></canvas></div>
+                        <div class="chart-box"><canvas id="chart-status"></canvas></div>
                     </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
+    <script src="js/store.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

@@ -1,138 +1,44 @@
 // ==========================================
-// ESTADO Y PERSISTENCIA (Proyectos y Tema)
+// APP.JS - Lógica de Tareas, Proyectos y Vistas
 // ==========================================
-let projects = JSON.parse(localStorage.getItem('notionProjectsV4')) || [];
-let currentProjectId = null;
-let currentView = localStorage.getItem('viewPreference') || 'list';
 
-function saveToLocalStorage() {
-    localStorage.setItem('notionProjectsV4', JSON.stringify(projects));
-}
-
-// ==========================================
-// SELECTORES DOM
-// ==========================================
 const projectForm = document.getElementById('project-form');
 const projectInput = document.getElementById('project-input');
 const projectList = document.getElementById('project-list');
-
 const currentProjectTitle = document.getElementById('current-project-title');
 const taskForm = document.getElementById('task-form');
 const taskInput = document.getElementById('task-input');
 const taskPriority = document.getElementById('task-priority');
 const taskList = document.getElementById('task-list');
-const navAddTaskBtn = document.getElementById('nav-add-task');
-const themeToggle = document.getElementById('theme-toggle');
 
 const listViewEl = document.getElementById('list-view');
 const kanbanViewEl = document.getElementById('kanban-view');
 const btnListView = document.getElementById('btn-list-view');
 const btnKanbanView = document.getElementById('btn-kanban-view');
+const themeToggle = document.getElementById('theme-toggle');
 
-// MONKEY-21: Variables para los charts
-let chartDonut = null;
-let chartPriority = null;
-let chartStatus = null;
-// ==========================================
-// MONKEY-13: GESTIÓN DE USUARIOS
-// ==========================================
-let users = JSON.parse(localStorage.getItem('notionUsers')) || [];
+let chartDonut = null, chartPriority = null, chartStatus = null;
 
-function saveUsers() {
-    localStorage.setItem('notionUsers', JSON.stringify(users));
-}
-
-function addUser(name) {
-    const trimmed = name.trim();
-    if (!trimmed) return false;
-    if (users.find(u => u.name.toLowerCase() === trimmed.toLowerCase())) {
-        alert('Ya existe un usuario con ese nombre.');
-        return false;
+// --- INICIALIZACIÓN ---
+function initMainApp() {
+    renderProjects();
+    setView(currentView);
+    if (!currentProjectId) {
+        taskList.innerHTML = '<div style="padding: 20px; color: var(--text-muted);">Selecciona o crea un proyecto en la barra lateral para comenzar.</div>';
+        taskForm.classList.add('hidden');
     }
-    users.push({ id: Date.now().toString(), name: trimmed });
-    saveUsers();
-    return true;
 }
 
-function deleteUser(userId) {
-    if (!confirm('¿Eliminar este usuario? Se quitará de las tareas asignadas.')) return;
-    users = users.filter(u => u.id !== userId);
-    saveUsers();
-    // Quitar el usuario de todas las tareas que lo tengan asignado
-    projects.forEach(project => {
-        project.tasks.forEach(task => {
-            if (task.assignedTo === userId) task.assignedTo = null;
-        });
-    });
-    saveToLocalStorage();
-    renderUserList();
-}
-
-function renderUserList() {
-    const list = document.getElementById('user-list');
-    if (!list) return;
-    list.innerHTML = '';
-    if (users.length === 0) {
-        list.innerHTML = '<li class="empty-state" style="font-size:12px; padding: 8px 0;">Sin usuarios aún.</li>';
-        return;
-    }
-    users.forEach(user => {
-        const li = document.createElement('li');
-        li.className = 'sidebar-item';
-        li.style.justifyContent = 'space-between';
-
-        const nameSpan = document.createElement('span');
-        nameSpan.innerHTML = `<i class="fas fa-user" style="margin-right:6px;"></i>${user.name}`;
-
-        const delBtn = document.createElement('button');
-        delBtn.className = 'action-btn delete';
-        delBtn.innerHTML = '<i class="fas fa-trash"></i>';
-        delBtn.onclick = () => deleteUser(user.id);
-
-        li.append(nameSpan, delBtn);
-        list.appendChild(li);
-    });
-}
-
-// Formulario de usuario
-document.getElementById('user-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const input = document.getElementById('user-input');
-    if (addUser(input.value)) {
-        input.value = '';
-        renderUserList();
-    }
-});
-
-// ==========================================
-// LÓGICA DEL MODO OSCURO
-// ==========================================
-const currentTheme = localStorage.getItem('themePreference');
-if (currentTheme === 'dark') {
+// --- TEMA OSCURO ---
+if (localStorage.getItem('themePreference') === 'dark') {
     document.body.classList.add('dark-theme');
-    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
 }
-
 themeToggle.addEventListener('click', () => {
     document.body.classList.toggle('dark-theme');
-    const isDark = document.body.classList.contains('dark-theme');
-    themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    localStorage.setItem('themePreference', isDark ? 'dark' : 'light');
+    localStorage.setItem('themePreference', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
 });
 
-// Botón de Navbar "+ Tarea"
-navAddTaskBtn.addEventListener('click', () => {
-    if (!currentProjectId) {
-        alert('Por favor, selecciona o crea un proyecto primero en la barra lateral.');
-        projectInput.focus();
-    } else {
-        taskInput.focus();
-    }
-});
-
-// ==========================================
-// TOGGLE DE VISTA (Lista / Kanban) — NUEVO
-// ==========================================
+// --- VISTAS ---
 function setView(view) {
     currentView = view;
     localStorage.setItem('viewPreference', view);
@@ -150,26 +56,17 @@ function setView(view) {
         renderTasks();
     }
 }
-
 btnListView.addEventListener('click', () => setView('list'));
 btnKanbanView.addEventListener('click', () => setView('kanban'));
 
-// ==========================================
-// LÓGICA DE PROYECTOS
-// ==========================================
+// --- PROYECTOS ---
 projectForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const projectName = projectInput.value.trim();
-    if (!projectName) return;
-
-    const newProject = {
-        id: Date.now().toString(),
-        name: projectName,
-        tasks: []
-    };
-
+    const name = projectInput.value.trim();
+    if (!name) return;
+    const newProject = { id: Date.now().toString(), name, tasks: [] };
     projects.push(newProject);
-    saveToLocalStorage();
+    saveProjects();
     projectInput.value = '';
     renderProjects();
     selectProject(newProject.id);
@@ -177,35 +74,21 @@ projectForm.addEventListener('submit', (e) => {
 
 function renderProjects() {
     projectList.innerHTML = '';
-    
-    if (projects.length === 0) {
-        projectList.innerHTML = `<div class="empty-state">No tienes proyectos aún.<br>¡Crea uno arriba!</div>`;
-        return;
-    }
-
     projects.forEach(project => {
         const li = document.createElement('li');
         li.className = `sidebar-item ${currentProjectId === project.id ? 'active' : ''}`;
         
         const titleSpan = document.createElement('span');
-        titleSpan.innerHTML = `<i class="fas fa-folder" style="margin-right: 8px;"></i> ${project.name}`;
+        titleSpan.innerHTML = `<i class="fas fa-list-ul" style="margin-right: 10px; opacity: 0.7;"></i> ${project.name}`;
         titleSpan.style.flexGrow = '1';
         titleSpan.onclick = () => selectProject(project.id);
 
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'actions';
+        actionsDiv.innerHTML = `
+            <button class="icon-btn" onclick="deleteProject('${project.id}', event)"><i class="fas fa-trash"></i></button>
+        `;
 
-        const editBtn = document.createElement('button');
-        editBtn.className = 'action-btn';
-        editBtn.innerHTML = '<i class="fas fa-pen"></i>';
-        editBtn.onclick = (e) => { e.stopPropagation(); editProject(project.id); };
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'action-btn delete';
-        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-        deleteBtn.onclick = (e) => { e.stopPropagation(); deleteProject(project.id); };
-
-        actionsDiv.append(editBtn, deleteBtn);
         li.append(titleSpan, actionsDiv);
         projectList.appendChild(li);
     });
@@ -214,465 +97,152 @@ function renderProjects() {
 function selectProject(id) {
     currentProjectId = id;
     const project = projects.find(p => p.id === id);
-    currentProjectTitle.innerHTML = `${project.name}`;
+    if (!project) return;
+    currentProjectTitle.textContent = project.name;
     taskForm.classList.remove('hidden');
+    document.getElementById('stats-section').classList.remove('hidden');
     renderProjects();
     setView(currentView);
-    // MONKEY-21
-    document.getElementById('stats-section').classList.remove('hidden');
     renderStats();
 }
 
-function editProject(id) {
-    const project = projects.find(p => p.id === id);
-    const newName = prompt('Editar nombre del proyecto:', project.name);
-    if (newName && newName.trim() !== '') {
-        project.name = newName.trim();
-        saveToLocalStorage();
-        renderProjects();
-        if (currentProjectId === id) selectProject(id);
-    }
-}
-
-function deleteProject(id) {
-    if (confirm(`¿Estás seguro de eliminar el proyecto y todas sus tareas?`)) {
+window.deleteProject = function(id, e) {
+    e.stopPropagation();
+    if (confirm('¿Eliminar proyecto?')) {
         projects = projects.filter(p => p.id !== id);
-        if (currentProjectId === id) {
-            currentProjectId = null;
-            taskForm.classList.add('hidden');
-            currentProjectTitle.innerHTML = 'Selecciona un proyecto';
-            taskList.innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i>Selecciona un proyecto en la barra lateral para ver tus tareas.</div>';
-            kanbanViewEl.querySelectorAll('.kanban-cards').forEach(col => col.innerHTML = '<div class="kanban-empty">Sin tareas</div>');
-        }
-        saveToLocalStorage();
+        if (currentProjectId === id) currentProjectId = null;
+        saveProjects();
         renderProjects();
+        initMainApp();
     }
 }
 
-// ==========================================
-// LÓGICA DE TAREAS
-// ==========================================
+// --- TAREAS (Lista visual estilo Asana/Flow) ---
 taskForm.addEventListener('submit', (e) => {
     e.preventDefault();
     if (!currentProjectId) return;
-
     const title = taskInput.value.trim();
     if (!title) return;
 
     const project = projects.find(p => p.id === currentProjectId);
-    const newTask = {
+    project.tasks.unshift({
         id: Date.now().toString(),
-        title: title,
+        title,
         priority: taskPriority.value,
-        status: 'pendiente'
-    };
-
-    project.tasks.unshift(newTask);
-    saveToLocalStorage();
+        status: 'pendiente',
+        assignedTo: currentUser ? currentUser.id : null
+    });
+    saveProjects();
     taskInput.value = '';
-
-    if (currentView === 'kanban') renderKanban(); else renderTasks();
+    setView(currentView);
+    renderStats();
 });
 
 function renderTasks() {
     taskList.innerHTML = '';
     if (!currentProjectId) return;
-
     const project = projects.find(p => p.id === currentProjectId);
     
     if (project.tasks.length === 0) {
-        taskList.innerHTML = `<div class="empty-state"><i class="fas fa-clipboard-check"></i>No hay tareas en este proyecto.<br>Añade una usando el formulario de arriba.</div>`;
+        taskList.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">El proyecto está vacío.</div>`;
         return;
     }
 
     project.tasks.forEach(task => {
         const div = document.createElement('div');
-        div.className = `task-item ${task.status === 'completada' ? 'task-completed' : ''}`;
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'task-checkbox';
-        checkbox.checked = task.status === 'completada';
-        checkbox.onchange = () => toggleTaskStatus(task.id);
-
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'task-content';
-
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'task-title';
-        titleSpan.textContent = task.title;
-
-        const priorityBadge = document.createElement('span');
-        priorityBadge.className = `tag ${task.priority}`;
-        priorityBadge.textContent = `Prioridad: ${task.priority}`;
-
-        const leftContent = document.createElement('div');
-        leftContent.style.display = 'flex';
-        leftContent.style.alignItems = 'center';
-        leftContent.style.gap = '15px';
-        leftContent.append(titleSpan, priorityBadge);
-
-        // MONKEY-14: Mostrar responsable en vista lista
+        div.className = `task-row ${task.status === 'completada' ? 'completed' : ''}`;
+        
         const assignedUser = users.find(u => u.id === task.assignedTo);
-        if (assignedUser) {
-            const assignBadge = document.createElement('span');
-            assignBadge.className = 'tag';
-            assignBadge.style.background = 'var(--accent-blue, #4a90e2)';
-            assignBadge.style.color = '#fff';
-            assignBadge.innerHTML = `<i class="fas fa-user" style="margin-right:4px;"></i>${assignedUser.name}`;
-            leftContent.appendChild(assignBadge);
-        }
+        const avatarHtml = assignedUser ? `<div class="avatar-small" title="${assignedUser.name}">${assignedUser.name.charAt(0).toUpperCase()}</div>` : `<div class="avatar-small" style="background: transparent; border: 1px dashed var(--border-color); color: var(--text-muted);"><i class="fas fa-user"></i></div>`;
 
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'actions';
-
-        const editBtn = document.createElement('button');
-        editBtn.className = 'action-btn';
-        editBtn.innerHTML = '<i class="fas fa-pen"></i>';
-        editBtn.title = "Editar tarea";
-        editBtn.onclick = () => editTask(task.id);
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'action-btn delete';
-        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-        deleteBtn.title = "Eliminar tarea";
-        deleteBtn.onclick = () => deleteTask(task.id);
-
-        actionsDiv.append(editBtn, deleteBtn);
-        contentDiv.append(leftContent, actionsDiv);
-        div.append(checkbox, contentDiv);
+        div.innerHTML = `
+            <div class="task-row-left">
+                <input type="checkbox" class="custom-checkbox" onchange="toggleTask('${task.id}')" ${task.status === 'completada' ? 'checked' : ''}>
+                <span class="task-title">${task.title}</span>
+                <span class="task-tag"><i class="fas fa-tag"></i> ${task.priority}</span>
+            </div>
+            <div class="task-row-right">
+                <span class="status-pill ${task.status}" onclick="cycleStatus('${task.id}')" style="cursor:pointer;" title="Clic para cambiar estado">${task.status.replace('-', ' ')}</span>
+                ${avatarHtml}
+                <div class="task-actions">
+                    <button class="icon-btn" onclick="deleteTask('${task.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
         taskList.appendChild(div);
     });
 }
 
-function toggleTaskStatus(taskId) {
+window.toggleTask = function(taskId) {
     const project = projects.find(p => p.id === currentProjectId);
     const task = project.tasks.find(t => t.id === taskId);
-    task.status = task.status === 'pendiente' ? 'completada' : 'pendiente';
-    saveToLocalStorage();
+    task.status = task.status === 'completada' ? 'pendiente' : 'completada';
+    saveProjects();
     renderTasks();
-    renderStats(); // MONKEY-21
+    renderStats();
 }
 
-function editTask(taskId) {
+window.cycleStatus = function(taskId) {
+    const statuses = ['pendiente', 'en-progreso', 'revision', 'completada'];
     const project = projects.find(p => p.id === currentProjectId);
     const task = project.tasks.find(t => t.id === taskId);
-    const newTitle = prompt('Editar tarea:', task.title);
-    if (newTitle && newTitle.trim() !== '') {
-        task.title = newTitle.trim();
-    }
-
-    // MONKEY-14: Asignar responsable al editar
-    if (users.length > 0) {
-        const options = users.map((u, i) => `${i + 1}. ${u.name}`).join('\n');
-        const current = users.findIndex(u => u.id === task.assignedTo);
-        const choice = prompt(
-            `Asignar responsable (escribe el número, 0 para ninguno):\n${options}`,
-            current >= 0 ? current + 1 : 0
-        );
-        if (choice !== null) {
-            const idx = parseInt(choice) - 1;
-            task.assignedTo = (idx >= 0 && users[idx]) ? users[idx].id : null;
-        }
-    }
-
-    saveToLocalStorage();
-    if (currentView === 'kanban') renderKanban(); else renderTasks();
+    let idx = statuses.indexOf(task.status);
+    task.status = statuses[(idx + 1) % statuses.length];
+    saveProjects();
+    setView(currentView);
+    renderStats();
 }
 
-function deleteTask(taskId) {
-    if (confirm('¿Seguro que deseas eliminar esta tarea?')) {
-        const project = projects.find(p => p.id === currentProjectId);
-        project.tasks = project.tasks.filter(t => t.id !== taskId);
-        saveToLocalStorage();
-        if (currentView === 'kanban') renderKanban(); else renderTasks();
-    }
-    renderStats(); // MONKEY-21
+window.deleteTask = function(taskId) {
+    const project = projects.find(p => p.id === currentProjectId);
+    project.tasks = project.tasks.filter(t => t.id !== taskId);
+    saveProjects();
+    setView(currentView);
+    renderStats();
 }
 
-// ==========================================
-// KANBAN — NUEVO
-// ==========================================
-const KANBAN_STATUSES = ['pendiente', 'en-progreso', 'revision', 'completada'];
-let draggedTaskId = null;
-
+// --- KANBAN BÁSICO ---
 function renderKanban() {
     if (!currentProjectId) return;
     const project = projects.find(p => p.id === currentProjectId);
+    const statuses = ['pendiente', 'en-progreso', 'revision', 'completada'];
 
-    KANBAN_STATUSES.forEach(status => {
+    statuses.forEach(status => {
         const container = document.getElementById(`cards-${status}`);
-        const countEl = document.getElementById(`count-${status}`);
         const tasks = project.tasks.filter(t => t.status === status);
-
+        document.getElementById(`count-${status}`).textContent = tasks.length;
         container.innerHTML = '';
-        countEl.textContent = tasks.length;
-
-        if (tasks.length === 0) container.innerHTML = `<div class="kanban-empty">Sin tareas</div>`;
-
-        tasks.forEach(task => container.appendChild(createKanbanCard(task)));
-
-        container.ondragover = (e) => {
-            e.preventDefault();
-            container.closest('.kanban-column').classList.add('drag-over');
-        };
-        container.ondragleave = (e) => {
-            if (!container.contains(e.relatedTarget))
-                container.closest('.kanban-column').classList.remove('drag-over');
-        };
-        container.ondrop = (e) => {
-            e.preventDefault();
-            container.closest('.kanban-column').classList.remove('drag-over');
-            if (draggedTaskId) moveTaskToStatus(draggedTaskId, status);
-        };
+        
+        tasks.forEach(task => {
+            const card = document.createElement('div');
+            card.className = 'kanban-card';
+            card.innerHTML = `
+                <div style="font-size: 14px; font-weight: 500; margin-bottom: 10px;">${task.title}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="task-tag">${task.priority}</span>
+                    <button class="icon-btn" style="font-size:12px;" onclick="cycleStatus('${task.id}')"><i class="fas fa-arrow-right"></i> Mover</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
     });
 }
 
-function createKanbanCard(task) {
-    const card = document.createElement('div');
-    card.className = 'kanban-card';
-    card.draggable = true;
-
-    card.ondragstart = (e) => {
-        draggedTaskId = task.id;
-        setTimeout(() => card.classList.add('dragging'), 0);
-        e.dataTransfer.effectAllowed = 'move';
-    };
-    card.ondragend = () => {
-        card.classList.remove('dragging');
-        draggedTaskId = null;
-    };
-
-    const title = document.createElement('div');
-    title.className = 'kanban-card-title';
-    title.textContent = task.title;
-
-    const footer = document.createElement('div');
-    footer.className = 'kanban-card-footer';
-
-    const badge = document.createElement('span');
-    badge.className = `tag ${task.priority}`;
-    badge.textContent = task.priority;
-
-    const actions = document.createElement('div');
-    actions.className = 'kanban-card-actions';
-
-    const editBtn = document.createElement('button');
-    editBtn.className = 'action-btn';
-    editBtn.innerHTML = '<i class="fas fa-pen"></i>';
-    editBtn.title = 'Editar';
-    editBtn.onclick = (e) => { e.stopPropagation(); editTask(task.id); };
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'action-btn delete';
-    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-    deleteBtn.title = 'Eliminar';
-    deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
-
-    actions.append(editBtn, deleteBtn);
-    footer.append(badge, actions);
-    
-    // MONKEY-14: Mostrar responsable en Kanban
-    const assignedUser = users.find(u => u.id === task.assignedTo);
-    if (assignedUser) {
-        const assignBadge = document.createElement('span');
-        assignBadge.className = 'tag';
-        assignBadge.style.background = 'var(--accent-blue, #4a90e2)';
-        assignBadge.style.color = '#fff';
-        assignBadge.innerHTML = `<i class="fas fa-user" style="margin-right:4px;"></i>${assignedUser.name}`;
-        footer.insertBefore(assignBadge, actions);
-    }
-    card.append(title, footer);
-    return card;
-}
-
-function moveTaskToStatus(taskId, newStatus) {
-    const project = projects.find(p => p.id === currentProjectId);
-    const task = project.tasks.find(t => t.id === taskId);
-    if (task) { task.status = newStatus; saveToLocalStorage(); renderKanban(); }
-    renderStats(); // MONKEY-21
-}
-
-// ==========================================
-// MONKEY-21: ESTADÍSTICAS
-// ==========================================
+// --- ESTADÍSTICAS BÁSICAS ---
 function renderStats() {
-    if (!currentProjectId) return;
-    const project = projects.find(p => p.id === currentProjectId);
-    const tasks = project.tasks;
-
-    const total = tasks.length;
+    if (!currentProjectId || typeof Chart === 'undefined') return;
+    const tasks = projects.find(p => p.id === currentProjectId).tasks;
+    
+    // Gráfico simple para validación
+    if(chartDonut) chartDonut.destroy();
     const completed = tasks.filter(t => t.status === 'completada').length;
-    const pending = tasks.filter(t => t.status === 'pendiente').length;
-    const inProgress = tasks.filter(t => t.status === 'en-progreso').length;
-    const review = tasks.filter(t => t.status === 'revision').length;
-    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-    const alta = tasks.filter(t => t.priority === 'alta').length;
-    const media = tasks.filter(t => t.priority === 'media').length;
-    const baja = tasks.filter(t => t.priority === 'baja').length;
-
-    // Tarjetas
-    document.getElementById('stat-total').textContent = total;
-    document.getElementById('stat-completed').textContent = completed;
-    document.getElementById('stat-pending').textContent = pending;
-    document.getElementById('stat-percent').textContent = `${percent}%`;
-
-    const isDark = document.body.classList.contains('dark-theme');
-    const textColor = isDark ? '#ccc' : '#555';
-
-    // Chart 1: Donut de progreso
-    if (chartDonut) chartDonut.destroy();
     chartDonut = new Chart(document.getElementById('chart-donut'), {
         type: 'doughnut',
-        data: {
-            labels: ['Completadas', 'Restantes'],
-            datasets: [{
-                data: [completed, total - completed],
-                backgroundColor: ['#4CAF50', '#e0e0e0'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            cutout: '70%',
-            plugins: {
-                legend: { labels: { color: textColor } }
-            }
-        }
-    });
-
-    // Chart 2: Barras por prioridad
-    if (chartPriority) chartPriority.destroy();
-    chartPriority = new Chart(document.getElementById('chart-priority'), {
-        type: 'bar',
-        data: {
-            labels: ['Alta', 'Media', 'Baja'],
-            datasets: [{
-                label: 'Tareas',
-                data: [alta, media, baja],
-                backgroundColor: ['#e74c3c', '#f39c12', '#3498db'],
-                borderRadius: 6
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { ticks: { color: textColor, stepSize: 1 }, grid: { color: isDark ? '#333' : '#eee' } },
-                x: { ticks: { color: textColor } }
-            }
-        }
-    });
-
-    // Chart 3: Barras por estado
-    if (chartStatus) chartStatus.destroy();
-    chartStatus = new Chart(document.getElementById('chart-status'), {
-        type: 'bar',
-        data: {
-            labels: ['Pendiente', 'En progreso', 'Revisión', 'Completada'],
-            datasets: [{
-                label: 'Tareas',
-                data: [pending, inProgress, review, completed],
-                backgroundColor: ['#95a5a6', '#3498db', '#f39c12', '#4CAF50'],
-                borderRadius: 6
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { ticks: { color: textColor, stepSize: 1 }, grid: { color: isDark ? '#333' : '#eee' } },
-                x: { ticks: { color: textColor } }
-            }
-        }
+        data: { labels: ['Completadas', 'Pendientes'], datasets: [{ data: [completed, tasks.length - completed], backgroundColor: ['#10b981', '#eaeaea'] }] },
+        options: { cutout: '75%', plugins: { legend: { position: 'bottom' } } }
     });
 }
 
-// Borrar todo
 document.getElementById('btn-clear-all').addEventListener('click', () => {
-    if (confirm('¿Seguro que deseas borrar TODOS los proyectos y tareas? Esta acción no se puede deshacer.')) {
-        localStorage.clear();
-        location.reload();
-    }
+    if (confirm('¿Borrar TODO?')) { localStorage.clear(); location.reload(); }
 });
-
-// ==========================================
-// LÓGICA DE EXPORTACIÓN E IMPORTACIÓN (JSON)
-// ==========================================
-
-// 1. Configurar la exportación
-document.getElementById('btn-export-json').addEventListener('click', () => {
-    const dataToExport = {
-        // Obtenemos los nombres de las llaves exactas que usas en tu app
-        projects: JSON.parse(localStorage.getItem('notionProjectsV4')) || [],
-        users: JSON.parse(localStorage.getItem('notionUsers')) || [],
-        theme: localStorage.getItem('themePreference') || 'light',
-        view: localStorage.getItem('viewPreference') || 'list'
-    };
-
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "scrummonkey_backup.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-});
-
-// 2. Configurar la importación
-const importTrigger = document.getElementById('btn-import-trigger');
-const importInput = document.getElementById('input-import-json');
-
-importTrigger.addEventListener('click', () => importInput.click());
-
-importInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        try {
-            const importedData = JSON.parse(event.target.result);
-
-            // Validación mínima para asegurar que el archivo es de ScrumMonkey
-            if (!importedData.projects && !importedData.users) {
-                throw new Error("El archivo no tiene el formato correcto.");
-            }
-
-            if (confirm('¿Deseas sobrescribir todos tus proyectos y usuarios con la información de este archivo?')) {
-                // Sobrescribimos usando las llaves que definiste al inicio de app.js
-                localStorage.setItem('notionProjectsV4', JSON.stringify(importedData.projects || []));
-                localStorage.setItem('notionUsers', JSON.stringify(importedData.users || []));
-                if (importedData.theme) localStorage.setItem('themePreference', importedData.theme);
-                if (importedData.view) localStorage.setItem('viewPreference', importedData.view);
-
-                alert('Datos cargados con éxito.');
-                location.reload(); 
-            }
-        } catch (err) {
-            alert('Error: El archivo seleccionado no es un respaldo válido de ScrumMonkey.');
-        }
-    };
-    reader.readAsText(file);
-});
-
-// ==========================================
-// INICIAR APLICACIÓN
-// ==========================================
-renderProjects();
-renderUserList(); // MONKEY-13
-
-// Forzar estado inicial de vistas (evita que se muestren juntas)
-if (currentView === 'kanban') {
-    listViewEl.classList.add('hidden');
-    kanbanViewEl.classList.remove('hidden');
-    btnListView.classList.remove('active');
-    btnKanbanView.classList.add('active');
-} else {
-    kanbanViewEl.classList.add('hidden');
-    listViewEl.classList.remove('hidden');
-    btnKanbanView.classList.remove('active');
-    btnListView.classList.add('active');
-}
-
-if (!currentProjectId) {
-    taskList.innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i>Selecciona o crea un proyecto en la barra lateral para comenzar.</div>';
-}
