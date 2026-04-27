@@ -246,3 +246,99 @@ function renderStats() {
 document.getElementById('btn-clear-all').addEventListener('click', () => {
     if (confirm('¿Borrar TODO?')) { localStorage.clear(); location.reload(); }
 });
+// ==========================================
+// RESPALDOS: EXPORTAR E IMPORTAR (JSON)
+// ==========================================
+const btnExport = document.getElementById('btn-export');
+const btnImportTrigger = document.getElementById('btn-import-trigger');
+const fileImport = document.getElementById('file-import');
+
+// --- EXPORTAR DATOS ---
+if (btnExport) {
+    btnExport.addEventListener('click', () => {
+        // Recopilar toda la información importante
+        const dataToExport = {
+            projects: projects,
+            users: users,
+            theme: localStorage.getItem('themePreference') || 'light',
+            view: currentView
+        };
+        
+        // Convertir a texto JSON
+        const dataStr = JSON.stringify(dataToExport, null, 2);
+        
+        // Crear un Blob (archivo virtual)
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        
+        // Crear un enlace temporal para forzar la descarga
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", url);
+        
+        // Generar nombre de archivo con fecha
+        const date = new Date();
+        const dateString = `${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`;
+        downloadAnchorNode.setAttribute("download", `tareas_respaldo_${dateString}.json`);
+        
+        // Ejecutar descarga y limpiar
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        URL.revokeObjectURL(url);
+    });
+}
+
+// --- IMPORTAR DATOS ---
+// 1. Al hacer clic en el botón visible, activamos el input de archivo oculto
+if (btnImportTrigger && fileImport) {
+    btnImportTrigger.addEventListener('click', () => {
+        fileImport.click();
+    });
+
+    // 2. Cuando el usuario selecciona un archivo
+    fileImport.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        
+        // 3. Cuando se termine de leer el archivo
+        reader.onload = function(event) {
+            try {
+                // Parsear el texto a un objeto JavaScript
+                const importedData = JSON.parse(event.target.result);
+                
+                // Confirmación para evitar sobreescritura accidental
+                if (confirm('¿Estás seguro de que deseas importar este respaldo? Esto sobrescribirá todos tus datos actuales.')) {
+                    
+                    // Guardar los nuevos datos en el LocalStorage
+                    if (importedData.projects) {
+                        localStorage.setItem('notionProjectsV5', JSON.stringify(importedData.projects));
+                    }
+                    if (importedData.users) {
+                        localStorage.setItem('notionUsers', JSON.stringify(importedData.users));
+                    }
+                    if (importedData.theme) {
+                        localStorage.setItem('themePreference', importedData.theme);
+                    }
+                    if (importedData.view) {
+                        localStorage.setItem('viewPreference', importedData.view);
+                    }
+                    
+                    alert('Datos importados correctamente. La página se recargará.');
+                    // Recargar la página para aplicar los cambios en la interfaz
+                    location.reload();
+                }
+            } catch (err) {
+                alert('Error al leer el archivo. Asegúrate de que sea un archivo de respaldo (.json) válido.');
+                console.error("Error importando JSON:", err);
+            }
+        };
+        
+        // Iniciar la lectura del archivo como texto
+        reader.readAsText(file);
+        
+        // Limpiar el valor del input para permitir seleccionar el mismo archivo después
+        e.target.value = '';
+    });
+}
