@@ -85,6 +85,18 @@
                 </form>
 
                 <ul id="user-list" class="sidebar-list"></ul>
+            </div><div class="sidebar-divider"></div>
+
+            <div class="storage-actions" style="display: flex; flex-direction: column; gap: 8px; padding: 0 12px; margin-bottom: 15px;">
+                <button id="btn-export-json" class="btn-primary" style="background-color: var(--accent-color); width: 100%;">
+                    <i class="fas fa-download"></i> Exportar Datos
+                </button>
+                
+                <button id="btn-import-trigger" class="sidebar-menu-item" style="border: 1px solid var(--border-color); background: var(--card-bg); cursor: pointer; width: 100%; justify-content: center;">
+                    <i class="fas fa-upload"></i> Importar Datos
+                </button>
+                
+                <input type="file" id="input-import-json" accept=".json" style="display: none;">
             </div>
 
             <div class="danger-zone">
