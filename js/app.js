@@ -29,6 +29,10 @@ const kanbanViewEl = document.getElementById('kanban-view');
 const btnListView = document.getElementById('btn-list-view');
 const btnKanbanView = document.getElementById('btn-kanban-view');
 
+// MONKEY-21: Variables para los charts
+let chartDonut = null;
+let chartPriority = null;
+let chartStatus = null;
 // ==========================================
 // MONKEY-13: GESTIÓN DE USUARIOS
 // ==========================================
@@ -214,6 +218,9 @@ function selectProject(id) {
     taskForm.classList.remove('hidden');
     renderProjects();
     setView(currentView);
+    // MONKEY-21
+    document.getElementById('stats-section').classList.remove('hidden');
+    renderStats();
 }
 
 function editProject(id) {
@@ -344,6 +351,7 @@ function toggleTaskStatus(taskId) {
     task.status = task.status === 'pendiente' ? 'completada' : 'pendiente';
     saveToLocalStorage();
     renderTasks();
+    renderStats(); // MONKEY-21
 }
 
 function editTask(taskId) {
@@ -379,6 +387,7 @@ function deleteTask(taskId) {
         saveToLocalStorage();
         if (currentView === 'kanban') renderKanban(); else renderTasks();
     }
+    renderStats(); // MONKEY-21
 }
 
 // ==========================================
@@ -481,8 +490,101 @@ function moveTaskToStatus(taskId, newStatus) {
     const project = projects.find(p => p.id === currentProjectId);
     const task = project.tasks.find(t => t.id === taskId);
     if (task) { task.status = newStatus; saveToLocalStorage(); renderKanban(); }
+    renderStats(); // MONKEY-21
 }
 
+// ==========================================
+// MONKEY-21: ESTADÍSTICAS
+// ==========================================
+function renderStats() {
+    if (!currentProjectId) return;
+    const project = projects.find(p => p.id === currentProjectId);
+    const tasks = project.tasks;
+
+    const total = tasks.length;
+    const completed = tasks.filter(t => t.status === 'completada').length;
+    const pending = tasks.filter(t => t.status === 'pendiente').length;
+    const inProgress = tasks.filter(t => t.status === 'en-progreso').length;
+    const review = tasks.filter(t => t.status === 'revision').length;
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    const alta = tasks.filter(t => t.priority === 'alta').length;
+    const media = tasks.filter(t => t.priority === 'media').length;
+    const baja = tasks.filter(t => t.priority === 'baja').length;
+
+    // Tarjetas
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-completed').textContent = completed;
+    document.getElementById('stat-pending').textContent = pending;
+    document.getElementById('stat-percent').textContent = `${percent}%`;
+
+    const isDark = document.body.classList.contains('dark-theme');
+    const textColor = isDark ? '#ccc' : '#555';
+
+    // Chart 1: Donut de progreso
+    if (chartDonut) chartDonut.destroy();
+    chartDonut = new Chart(document.getElementById('chart-donut'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Completadas', 'Restantes'],
+            datasets: [{
+                data: [completed, total - completed],
+                backgroundColor: ['#4CAF50', '#e0e0e0'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            cutout: '70%',
+            plugins: {
+                legend: { labels: { color: textColor } }
+            }
+        }
+    });
+
+    // Chart 2: Barras por prioridad
+    if (chartPriority) chartPriority.destroy();
+    chartPriority = new Chart(document.getElementById('chart-priority'), {
+        type: 'bar',
+        data: {
+            labels: ['Alta', 'Media', 'Baja'],
+            datasets: [{
+                label: 'Tareas',
+                data: [alta, media, baja],
+                backgroundColor: ['#e74c3c', '#f39c12', '#3498db'],
+                borderRadius: 6
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { ticks: { color: textColor, stepSize: 1 }, grid: { color: isDark ? '#333' : '#eee' } },
+                x: { ticks: { color: textColor } }
+            }
+        }
+    });
+
+    // Chart 3: Barras por estado
+    if (chartStatus) chartStatus.destroy();
+    chartStatus = new Chart(document.getElementById('chart-status'), {
+        type: 'bar',
+        data: {
+            labels: ['Pendiente', 'En progreso', 'Revisión', 'Completada'],
+            datasets: [{
+                label: 'Tareas',
+                data: [pending, inProgress, review, completed],
+                backgroundColor: ['#95a5a6', '#3498db', '#f39c12', '#4CAF50'],
+                borderRadius: 6
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { ticks: { color: textColor, stepSize: 1 }, grid: { color: isDark ? '#333' : '#eee' } },
+                x: { ticks: { color: textColor } }
+            }
+        }
+    });
+}
 // Borrar todo
 document.getElementById('btn-clear-all').addEventListener('click', () => {
     if (confirm('¿Seguro que deseas borrar TODOS los proyectos y tareas? Esta acción no se puede deshacer.')) {
