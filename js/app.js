@@ -585,12 +585,73 @@ function renderStats() {
         }
     });
 }
+
 // Borrar todo
 document.getElementById('btn-clear-all').addEventListener('click', () => {
     if (confirm('¿Seguro que deseas borrar TODOS los proyectos y tareas? Esta acción no se puede deshacer.')) {
         localStorage.clear();
         location.reload();
     }
+});
+
+// ==========================================
+// LÓGICA DE EXPORTACIÓN E IMPORTACIÓN (JSON)
+// ==========================================
+
+// 1. Configurar la exportación
+document.getElementById('btn-export-json').addEventListener('click', () => {
+    const dataToExport = {
+        // Obtenemos los nombres de las llaves exactas que usas en tu app
+        projects: JSON.parse(localStorage.getItem('notionProjectsV4')) || [],
+        users: JSON.parse(localStorage.getItem('notionUsers')) || [],
+        theme: localStorage.getItem('themePreference') || 'light',
+        view: localStorage.getItem('viewPreference') || 'list'
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "scrummonkey_backup.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+});
+
+// 2. Configurar la importación
+const importTrigger = document.getElementById('btn-import-trigger');
+const importInput = document.getElementById('input-import-json');
+
+importTrigger.addEventListener('click', () => importInput.click());
+
+importInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const importedData = JSON.parse(event.target.result);
+
+            // Validación mínima para asegurar que el archivo es de ScrumMonkey
+            if (!importedData.projects && !importedData.users) {
+                throw new Error("El archivo no tiene el formato correcto.");
+            }
+
+            if (confirm('¿Deseas sobrescribir todos tus proyectos y usuarios con la información de este archivo?')) {
+                // Sobrescribimos usando las llaves que definiste al inicio de app.js
+                localStorage.setItem('notionProjectsV4', JSON.stringify(importedData.projects || []));
+                localStorage.setItem('notionUsers', JSON.stringify(importedData.users || []));
+                if (importedData.theme) localStorage.setItem('themePreference', importedData.theme);
+                if (importedData.view) localStorage.setItem('viewPreference', importedData.view);
+
+                alert('Datos cargados con éxito.');
+                location.reload(); 
+            }
+        } catch (err) {
+            alert('Error: El archivo seleccionado no es un respaldo válido de ScrumMonkey.');
+        }
+    };
+    reader.readAsText(file);
 });
 
 // ==========================================
