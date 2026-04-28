@@ -130,7 +130,8 @@ taskForm.addEventListener('submit', (e) => {
         title,
         priority: taskPriority.value,
         status: 'pendiente',
-        assignedTo: currentUser ? currentUser.id : null
+        assignedTo: currentUser ? currentUser.id : null,
+        dueDate: document.getElementById('task-due-date').value || null
     });
     saveProjects();
     taskInput.value = '';
@@ -160,6 +161,7 @@ function renderTasks() {
                 <input type="checkbox" class="custom-checkbox" onchange="toggleTask('${task.id}')" ${task.status === 'completada' ? 'checked' : ''}>
                 <span class="task-title">${task.title}</span>
                 <span class="task-tag"><i class="fas fa-tag"></i> ${task.priority}</span>
+                ${task.dueDate ? `<span class="task-tag due-date"><i class="fas fa-calendar-alt"></i> ${formatDate(task.dueDate)}</span>` : ''}
             </div>
             <div class="task-row-right">
                 <span class="status-pill ${task.status}" onclick="cycleStatus('${task.id}')" style="cursor:pointer;" title="Clic para cambiar estado">${task.status.replace('-', ' ')}</span>
@@ -242,6 +244,121 @@ function renderStats() {
         options: { cutout: '75%', plugins: { legend: { position: 'bottom' } } }
     });
 }
+
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+}
+
+// ==========================================
+// MONKEY-22: CALENDARIO
+// ==========================================
+let calendarDate = new Date();
+
+function renderCalendar() {
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+
+    const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    document.getElementById('cal-month-title').textContent = `${monthNames[month]} ${year}`;
+
+    // Recopilar todas las tareas con fecha de vencimiento
+    const tasksByDate = {};
+    projects.forEach(project => {
+        project.tasks.forEach(task => {
+            if (task.dueDate) {
+                if (!tasksByDate[task.dueDate]) tasksByDate[task.dueDate] = [];
+                tasksByDate[task.dueDate].push({ ...task, projectName: project.name });
+            }
+        });
+    });
+
+    const grid = document.getElementById('calendar-grid');
+    grid.innerHTML = '';
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date().toISOString().split('T')[0];
+
+    // Celdas vacías antes del día 1
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-cell empty';
+        grid.appendChild(empty);
+    }
+
+    // Días del mes
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+        if (dateStr === today) cell.classList.add('today');
+
+        const dayTasks = tasksByDate[dateStr] || [];
+        if (dayTasks.length > 0) cell.classList.add('has-tasks');
+
+        cell.innerHTML = `<span class="cal-day-number">${day}</span>`;
+
+        dayTasks.forEach(task => {
+            const pill = document.createElement('div');
+            pill.className = `cal-task-pill ${task.status} ${task.priority}`;
+            pill.textContent = task.title.length > 18 ? task.title.substring(0, 18) + '...' : task.title;
+            pill.title = `${task.title} — ${task.projectName}`;
+            cell.appendChild(pill);
+        });
+
+        grid.appendChild(cell);
+    }
+}
+
+document.getElementById('cal-prev').addEventListener('click', () => {
+    calendarDate.setMonth(calendarDate.getMonth() - 1);
+    renderCalendar();
+});
+document.getElementById('cal-next').addEventListener('click', () => {
+    calendarDate.setMonth(calendarDate.getMonth() + 1);
+    renderCalendar();
+});
+
+// Navegación del navbar al calendario
+document.getElementById('nav-calendar').addEventListener('click', (e) => {
+    e.preventDefault();
+    // Ocultar secciones principales
+    document.getElementById('list-view').classList.add('hidden');
+    document.getElementById('kanban-view').classList.add('hidden');
+    document.getElementById('stats-section').classList.add('hidden');
+    document.querySelector('.add-task-form').classList.add('hidden');
+    document.querySelector('.list-headers').classList.add('hidden');
+    document.querySelector('.view-toggle').classList.add('hidden');
+    document.querySelector('.content-header h1').textContent = 'Calendario';
+
+    // Mostrar calendario
+    document.getElementById('calendar-section').classList.remove('hidden');
+    renderCalendar();
+
+    // Marcar activo en navbar
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    e.target.closest('.nav-link').classList.add('active');
+});
+
+// Al hacer clic en Tareas del navbar, volver a la vista normal
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+        if (link.id !== 'nav-calendar') {
+            document.getElementById('calendar-section').classList.add('hidden');
+            document.querySelector('.list-headers').classList.remove('hidden');
+            document.querySelector('.view-toggle').classList.remove('hidden');
+            if (currentProjectId) {
+                document.querySelector('.add-task-form').classList.remove('hidden');
+                document.getElementById('current-project-title').textContent = 
+                    projects.find(p => p.id === currentProjectId)?.name || 'Selecciona un proyecto';
+                setView(currentView);
+            }
+        }
+    });
+});
 
 document.getElementById('btn-clear-all').addEventListener('click', () => {
     if (confirm('¿Borrar TODO?')) { localStorage.clear(); location.reload(); }

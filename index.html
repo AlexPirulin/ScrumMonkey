@@ -48,7 +48,7 @@
                 <a href="#" class="nav-link"><i class="fas fa-home"></i> Inicio</a>
                 <a href="#" class="nav-link active"><i class="fas fa-check"></i> Tareas</a>
                 <a href="#" class="nav-link"><i class="far fa-flag"></i> Proyectos</a>
-                <a href="#" class="nav-link"><i class="far fa-calendar"></i> Calendarios</a>
+                <a href="#" class="nav-link" id="nav-calendar"><i class="far fa-calendar"></i> Calendarios</a>
             </nav>
             
             <div class="nav-right">
@@ -120,6 +120,7 @@
                         <option value="media" selected>Media</option>
                         <option value="alta">Alta</option>
                     </select>
+                    <input type="date" id="task-due-date" title="Fecha de vencimiento">
                     <button type="submit" class="btn-primary pill"><i class="fas fa-plus"></i></button>
                 </form>
 
@@ -153,6 +154,19 @@
                         <div class="chart-box"><canvas id="chart-priority"></canvas></div>
                         <div class="chart-box"><canvas id="chart-status"></canvas></div>
                     </div>
+                </div>
+                <!-- MONKEY-22: Calendario -->
+                <div id="calendar-section" class="calendar-section hidden">
+                    <div class="calendar-header">
+                        <button class="icon-btn" id="cal-prev"><i class="fas fa-chevron-left"></i></button>
+                        <h2 id="cal-month-title">Mes Año</h2>
+                        <button class="icon-btn" id="cal-next"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <span>Dom</span><span>Lun</span><span>Mar</span>
+                        <span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+                    </div>
+                    <div id="calendar-grid" class="calendar-grid"></div>
                 </div>
             </main>
         </div>
