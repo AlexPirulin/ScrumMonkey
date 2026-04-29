@@ -219,6 +219,38 @@
             </main>
         </div>
     </div>
+    <div id="edit-task-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3><i class="fas fa-edit"></i> Editar Tarea</h3>
+            <form id="edit-task-form">
+                <input type="hidden" id="edit-task-id">
+                
+                <div class="input-group">
+                    <label for="edit-task-title">Nombre de la tarea</label>
+                    <input type="text" id="edit-task-title" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="edit-task-priority">Prioridad</label>
+                    <select id="edit-task-priority" required>
+                        <option value="baja">Baja</option>
+                        <option value="media">Media</option>
+                        <option value="alta">Alta</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="edit-task-date">Fecha de vencimiento</label>
+                    <input type="date" id="edit-task-date" title="Fecha límite">
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" id="btn-cancel-edit" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary" style="background: var(--accent-blue);">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="js/store.js"></script>
     <script src="js/auth.js"></script>

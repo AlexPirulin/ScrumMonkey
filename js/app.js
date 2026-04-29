@@ -171,9 +171,15 @@ function renderTasks() {
                 <span class="status-pill ${task.status}" onclick="cycleStatus('${task.id}')" style="cursor:pointer;" title="Clic para cambiar estado">${task.status.replace('-', ' ')}</span>
                 ${avatarHtml}
                 <div class="task-actions">
-                    <button class="icon-btn" onclick="deleteTask('${task.id}')"><i class="fas fa-trash"></i></button>
+                    ${currentUser && currentUser.role === 'admin' ? `
+                        <button class="icon-btn" style="color: var(--accent-blue);" onclick="openEditModal('${task.id}')" title="Editar tarea">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="icon-btn" style="color: var(--danger);" onclick="deleteTask('${task.id}')" title="Eliminar tarea">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ` : ''}
                 </div>
-            </div>
         `;
         taskList.appendChild(div);
     });
@@ -463,3 +469,74 @@ if (btnImportTrigger && fileImport) {
         e.target.value = '';
     });
 }
+// ==========================================
+// EDICIÓN DE TAREAS Y RESTRICCIÓN DE FECHAS
+// ==========================================
+
+// 1. Restringir calendarios a la fecha actual
+function setMinDateInputs() {
+    const today = new Date().toISOString().split('T')[0]; // Obtiene la fecha de hoy en formato YYYY-MM-DD
+    
+    // Aplica el límite al formulario de crear y al de editar
+    const addTaskDate = document.getElementById('task-due-date');
+    const editTaskDate = document.getElementById('edit-task-date');
+    
+    if (addTaskDate) addTaskDate.setAttribute('min', today);
+    if (editTaskDate) editTaskDate.setAttribute('min', today);
+}
+
+// Ejecutar la restricción al cargar
+document.addEventListener('DOMContentLoaded', setMinDateInputs);
+
+// 2. Elementos del Modal
+const editModal = document.getElementById('edit-task-modal');
+const editForm = document.getElementById('edit-task-form');
+const editIdInput = document.getElementById('edit-task-id');
+const editTitleInput = document.getElementById('edit-task-title');
+const editPriorityInput = document.getElementById('edit-task-priority');
+const editDateInput = document.getElementById('edit-task-date');
+const btnCancelEdit = document.getElementById('btn-cancel-edit');
+
+// 3. Función para abrir el modal (Invocada desde el botón)
+window.openEditModal = function(taskId) {
+    const project = projects.find(p => p.id === currentProjectId);
+    const task = project.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    // Rellenar los campos con los datos actuales de la tarea
+    editIdInput.value = task.id;
+    editTitleInput.value = task.title;
+    editPriorityInput.value = task.priority;
+    editDateInput.value = task.dueDate || '';
+    
+    // Asegurarnos de que el límite de fecha está aplicado antes de abrir
+    setMinDateInputs(); 
+    editModal.classList.remove('hidden');
+};
+
+// 4. Cerrar el modal
+btnCancelEdit.addEventListener('click', () => {
+    editModal.classList.add('hidden');
+});
+
+// 5. Guardar los cambios
+editForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const taskId = editIdInput.value;
+    const project = projects.find(p => p.id === currentProjectId);
+    const task = project.tasks.find(t => t.id === taskId);
+    
+    if (task) {
+        // Actualizar valores
+        task.title = editTitleInput.value.trim();
+        task.priority = editPriorityInput.value;
+        task.dueDate = editDateInput.value;
+        
+        // Guardar y refrescar interfaz
+        saveProjects();
+        setView(currentView); // Actualiza la lista o el kanban
+        if (typeof renderCalendar === 'function') renderCalendar(); // Actualiza el calendario
+        
+        editModal.classList.add('hidden');
+    }
+});
