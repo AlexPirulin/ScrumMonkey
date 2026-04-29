@@ -147,6 +147,9 @@
                 <header class="content-header">
                     <h1 id="current-project-title">Selecciona un proyecto</h1>
                     <div class="view-toggle">
+                        <button id="btn-manage-members" class="view-btn hidden" style="color: var(--accent-blue); font-weight: bold;">
+                            <i class="fas fa-users"></i> Miembros
+                        </button>
                         <button id="btn-list-view" class="view-btn active"><i class="fas fa-list"></i> Lista</button>
                         <button id="btn-kanban-view" class="view-btn"><i class="fas fa-columns"></i> Kanban</button>
                     </div>
@@ -217,6 +220,32 @@
                     <div id="calendar-grid" class="calendar-grid"></div>
                 </div>
             </main>
+        </div>
+    </div>
+    <div id="members-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3><i class="fas fa-users-cog"></i> Miembros del Proyecto</h3>
+            
+            <div id="project-members-list" style="margin-bottom: 20px; max-height: 150px; overflow-y: auto; text-align: left;">
+                </div>
+
+            <form id="add-member-form">
+                <div class="input-group">
+                    <label for="new-member-select">Agregar usuario</label>
+                    <select id="new-member-select" required></select>
+                </div>
+                <div class="input-group">
+                    <label for="new-member-role">Permiso en este proyecto</label>
+                    <select id="new-member-role" required>
+                        <option value="user">Usuario (Solo mover y completar tareas)</option>
+                        <option value="admin">Administrador (Editar y borrar tareas)</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="btn-close-members" class="btn-secondary">Cerrar</button>
+                    <button type="submit" class="btn-primary" style="background: var(--success);">Añadir persona</button>
+                </div>
+            </form>
         </div>
     </div>
     <div id="edit-task-modal" class="modal-overlay hidden">

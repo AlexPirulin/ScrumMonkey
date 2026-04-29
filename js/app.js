@@ -68,7 +68,15 @@ projectForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = projectInput.value.trim();
     if (!name) return;
-    const newProject = { id: Date.now().toString(), name, tasks: [] };
+    
+    // Ahora el proyecto guarda un arreglo de miembros. El creador entra como admin por defecto.
+    const newProject = { 
+        id: Date.now().toString(), 
+        name, 
+        tasks: [],
+        members: [{ userId: currentUser.id, role: 'admin' }] 
+    };
+    
     projects.push(newProject);
     saveProjects();
     projectInput.value = '';
@@ -78,7 +86,17 @@ projectForm.addEventListener('submit', (e) => {
 
 function renderProjects() {
     projectList.innerHTML = '';
-    projects.forEach(project => {
+    
+    // Filtrar proyectos: Si es admin global ve todos, si es usuario solo ve donde es miembro
+    const visibleProjects = projects.filter(p => {
+        if (!currentUser) return false;
+        if (currentUser.role === 'admin') return true;
+        if (!p.members) return true; // Proyectos antiguos
+        return p.members.some(m => m.userId === currentUser.id);
+    });
+
+    visibleProjects.forEach(project => {
+        // ... (deja el resto del código de esta función igual, solo cambia projects.forEach por visibleProjects.forEach)
         const li = document.createElement('li');
         li.className = `sidebar-item ${currentProjectId === project.id ? 'active' : ''}`;
         
@@ -89,9 +107,12 @@ function renderProjects() {
 
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'actions';
-        actionsDiv.innerHTML = `
-            <button class="icon-btn" onclick="deleteProject('${project.id}', event)"><i class="fas fa-trash"></i></button>
-        `;
+        // Solo el administrador GLOBAL puede borrar el proyecto entero
+        if (currentUser && currentUser.role === 'admin') {
+            actionsDiv.innerHTML = `
+                <button class="icon-btn" onclick="deleteProject('${project.id}', event)"><i class="fas fa-trash"></i></button>
+            `;
+        }
 
         li.append(titleSpan, actionsDiv);
         projectList.appendChild(li);
@@ -108,6 +129,10 @@ function selectProject(id) {
     renderProjects();
     setView(currentView);
     renderStats();
+    const btnManageMembers = document.getElementById('btn-manage-members');
+    if (btnManageMembers) {
+        btnManageMembers.classList.toggle('hidden', getProjectRole(project) !== 'admin');
+    }
 }
 
 window.deleteProject = function(id, e) {
@@ -171,7 +196,7 @@ function renderTasks() {
                 <span class="status-pill ${task.status}" onclick="cycleStatus('${task.id}')" style="cursor:pointer;" title="Clic para cambiar estado">${task.status.replace('-', ' ')}</span>
                 ${avatarHtml}
                 <div class="task-actions">
-                    ${currentUser && currentUser.role === 'admin' ? `
+                    ${getProjectRole(project) === 'admin' ? `
                         <button class="icon-btn" style="color: var(--accent-blue);" onclick="openEditModal('${task.id}')" title="Editar tarea">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -540,3 +565,98 @@ editForm.addEventListener('submit', (e) => {
         editModal.classList.add('hidden');
     }
 });
+// Verifica el rol del usuario en el proyecto actual
+function getProjectRole(project) {
+    if (!currentUser) return null;
+    if (currentUser.role === 'admin') return 'admin'; // El admin global siempre es admin
+    if (!project.members) return 'admin'; // Compatibilidad con proyectos viejos sin miembros
+    
+    const memberInfo = project.members.find(m => m.userId === currentUser.id);
+    return memberInfo ? memberInfo.role : null;
+}
+// ==========================================
+// GESTIÓN DE MIEMBROS DE PROYECTO
+// ==========================================
+const membersModal = document.getElementById('members-modal');
+const btnManageMembers = document.getElementById('btn-manage-members');
+const btnCloseMembers = document.getElementById('btn-close-members');
+const projectMembersList = document.getElementById('project-members-list');
+const newMemberSelect = document.getElementById('new-member-select');
+const addMemberForm = document.getElementById('add-member-form');
+
+if (btnManageMembers) {
+    btnManageMembers.addEventListener('click', () => {
+        renderMembersModal();
+        membersModal.classList.remove('hidden');
+    });
+}
+
+if (btnCloseMembers) {
+    btnCloseMembers.addEventListener('click', () => membersModal.classList.add('hidden'));
+}
+
+function renderMembersModal() {
+    const project = projects.find(p => p.id === currentProjectId);
+    if (!project) return;
+    
+    // Migrar proyecto antiguo si no tiene miembros
+    if (!project.members) {
+        project.members = [{ userId: currentUser.id, role: 'admin' }];
+        saveProjects();
+    }
+    
+    // Pintar la lista de miembros actuales
+    projectMembersList.innerHTML = '';
+    project.members.forEach(m => {
+        const u = users.find(user => user.id === m.userId);
+        if(u) {
+            const roleBadge = m.role === 'admin' 
+                ? '<span style="background:#fee2e2; color:#dc2626; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">Admin</span>' 
+                : '<span style="background:#dcfce7; color:#16a34a; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">Usuario</span>';
+            
+            projectMembersList.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border-color);">
+                    <span><strong>${u.name}</strong> ${roleBadge}</span>
+                    ${m.userId !== currentUser.id ? `<button onclick="removeMember('${m.userId}')" style="color:var(--danger); background:none; border:none; cursor:pointer;" title="Expulsar"><i class="fas fa-user-times"></i></button>` : '<span style="font-size:11px; color:var(--text-muted);">Tú</span>'}
+                </div>
+            `;
+        }
+    });
+
+    // Pintar el selector de usuarios disponibles (que no estén ya en el proyecto)
+    newMemberSelect.innerHTML = '<option value="" disabled selected>Selecciona una persona...</option>';
+    let availableUsers = 0;
+    users.forEach(u => {
+        if (!project.members.some(m => m.userId === u.id) && u.role !== 'admin') {
+            newMemberSelect.innerHTML += `<option value="${u.id}">${u.name}</option>`;
+            availableUsers++;
+        }
+    });
+
+    if (availableUsers === 0) {
+        newMemberSelect.innerHTML = '<option value="" disabled>No hay más usuarios disponibles</option>';
+    }
+}
+
+if (addMemberForm) {
+    addMemberForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const userId = newMemberSelect.value;
+        const role = document.getElementById('new-member-role').value;
+        if(!userId) return;
+
+        const project = projects.find(p => p.id === currentProjectId);
+        project.members.push({ userId, role });
+        saveProjects();
+        renderMembersModal(); // Refrescar la vista
+    });
+}
+
+window.removeMember = function(userId) {
+    if(confirm('¿Estás seguro de quitar a esta persona del proyecto?')) {
+        const project = projects.find(p => p.id === currentProjectId);
+        project.members = project.members.filter(m => m.userId !== userId);
+        saveProjects();
+        renderMembersModal();
+    }
+}
