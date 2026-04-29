@@ -10,18 +10,66 @@
 </head>
 <body>
 
-    <div id="login-screen" class="login-overlay hidden">
+<div id="login-screen" class="login-overlay">
+        <button id="login-theme-toggle" class="theme-btn-login" title="Cambiar tema">
+            <i class="fas fa-moon"></i>
+        </button>
+
         <div class="login-card">
-            <h2>Bienvenido</h2>
-            <div class="user-select-container">
-                <p class="text-muted">Selecciona tu usuario:</p>
-                <ul id="login-user-list" class="login-user-list"></ul>
+            <div class="login-header">
+                <div class="logo-icon"><i class="fas fa-check-double"></i></div>
+                <h2>TaskMaster</h2>
+                <p>Gestiona tus proyectos con estilo</p>
             </div>
-            <div class="divider">o crea uno nuevo</div>
-            <form id="login-new-user-form">
-                <input type="text" id="login-new-user-input" placeholder="Nombre de usuario..." required>
-                <button type="submit" class="btn-primary w-100">Ingresar</button>
-            </form>
+            
+            <div class="default-users-info">
+                <div class="info-tag">Acceso rápido</div>
+                <div class="user-pill">
+                    <span class="role admin">Admin</span> <strong>Labubu</strong> <span class="pass">1234</span>
+                </div>
+                <div class="user-pill">
+                    <span class="role user">User</span> <strong>Alex</strong> <span class="pass">1234</span>
+                </div>
+            </div>
+
+            <div class="form-container">
+                <form id="login-form">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="login-username" placeholder="Nombre de usuario" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="login-password" placeholder="Contraseña" required>
+                    </div>
+                    <button type="submit" class="btn-login-submit">Entrar</button>
+                </form>
+
+                <div class="divider"><span>o regístrate</span></div>
+                
+<form id="register-form">
+    <div class="input-group">
+        <i class="fas fa-user-plus"></i>
+        <input type="text" id="reg-username" placeholder="Nuevo usuario" required>
+    </div>
+
+    <div class="input-group">
+        <i class="fas fa-key"></i>
+        <input type="password" id="reg-password" placeholder="Nueva contraseña" required>
+    </div>
+
+    <div class="input-group">
+        <i class="fas fa-user-shield"></i>
+        <select id="reg-role" required>
+            <option value="" disabled selected>Selecciona un rol...</option>
+            <option value="user">Rol: Usuario (Tareas)</option>
+            <option value="admin">Rol: Administrador (Proyectos)</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn-register-submit">Crear cuenta gratuita</button>
+</form>
+            </div>
         </div>
     </div>
 

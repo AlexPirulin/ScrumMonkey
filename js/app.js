@@ -21,12 +21,16 @@ let chartDonut = null, chartPriority = null, chartStatus = null;
 
 // --- INICIALIZACIÓN ---
 function initMainApp() {
-    renderProjects();
-    setView(currentView);
-    if (!currentProjectId) {
-        taskList.innerHTML = '<div style="padding: 20px; color: var(--text-muted);">Selecciona o crea un proyecto en la barra lateral para comenzar.</div>';
-        taskForm.classList.add('hidden');
-    }
+const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'actions';
+        // Solo el administrador ve el botón de borrar proyecto
+        if (currentUser && currentUser.role === 'admin') {
+            actionsDiv.innerHTML = `
+                <button class="icon-btn" onclick="deleteProject('${project.id}', event)" title="Eliminar proyecto">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+        }
 }
 
 // --- TEMA OSCURO ---

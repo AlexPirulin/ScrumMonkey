@@ -817,3 +817,172 @@ body.dark-theme .text-danger:hover { background-color: rgba(239, 68, 68, 0.1); }
     color: var(--text-main);
     font-size: 13px;
 }
+/* --- ESTÉTICA LOGIN --- */
+.login-overlay {
+    background: linear-gradient(135deg, #0b2e8f 0%, #3b82f6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    transition: background 0.3s ease;
+}
+
+body.dark-theme .login-overlay {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+body.dark-theme .login-card {
+    background: rgba(30, 41, 59, 0.9);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.login-header h2 { font-size: 28px; color: var(--accent-blue); margin-bottom: 5px; }
+.login-header p { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; }
+
+.logo-icon {
+    font-size: 40px;
+    color: var(--accent-blue);
+    margin-bottom: 10px;
+}
+
+/* Info de usuarios predeterminados */
+.default-users-info {
+    background: rgba(0,0,0,0.03);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 25px;
+}
+body.dark-theme .default-users-info { background: rgba(255,255,255,0.05); }
+
+.user-pill {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    margin: 5px 0;
+}
+
+.role { padding: 2px 6px; border-radius: 4px; font-size: 10px; text-transform: uppercase; font-weight: bold; }
+.role.admin { background: #fee2e2; color: #dc2626; }
+.role.user { background: #dcfce7; color: #16a34a; }
+
+/* Inputs Estéticos */
+.input-group {
+    position: relative;
+    margin-bottom: 15px;
+}
+.input-group i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+.input-group input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s;
+}
+.input-group input:focus { border-color: var(--accent-blue); }
+
+.btn-login-submit {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent-blue);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+/* Botón de tema en Login */
+.theme-btn-login {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    backdrop-filter: blur(5px);
+}
+/* Estilo específico para el selector de roles */
+#reg-role {
+    width: 100%;
+    padding: 12px 12px 12px 40px; /* Espacio para el icono a la izquierda */
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 14px;
+    background-color: var(--app-bg);
+    color: var(--text-main);
+    outline: none;
+    cursor: pointer;
+    appearance: none; /* Quita el estilo por defecto del sistema */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23718096' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 12px) center;
+    transition: border-color 0.2s;
+}
+
+#reg-role:focus {
+    border-color: var(--accent-blue);
+}
+
+/* Botón de Registro más estético */
+.btn-register-submit {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    color: var(--accent-blue);
+    border: 2px solid var(--accent-blue);
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 5px;
+    transition: all 0.3s ease;
+}
+
+.btn-register-submit:hover {
+    background: var(--accent-blue);
+    color: white;
+}
+
+/* Ajuste de modo oscuro para el formulario de registro */
+body.dark-theme #reg-role {
+    background-color: #2d3748;
+    border-color: #4a5568;
+    color: #edf2f7;
+}
+
+body.dark-theme .btn-register-submit {
+    color: #63b3ed;
+    border-color: #63b3ed;
+}
+
+body.dark-theme .btn-register-submit:hover {
+    background: #63b3ed;
+    color: #1a202c;
+}
