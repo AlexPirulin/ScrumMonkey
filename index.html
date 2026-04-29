@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Tareas</title>
+    <title>Gestor de Tareas Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 
-<div id="login-screen" class="login-overlay">
+    <div id="login-screen" class="login-overlay">
         <button id="login-theme-toggle" class="theme-btn-login" title="Cambiar tema">
             <i class="fas fa-moon"></i>
         </button>
@@ -42,203 +42,186 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" id="login-password" placeholder="Contraseña" required>
                     </div>
-                    <button type="submit" class="btn-login-submit">Entrar</button>
+                    <button type="submit" class="btn-primary w-100 btn-login-submit">Entrar</button>
                 </form>
 
                 <div class="divider"><span>o regístrate</span></div>
                 
-<form id="register-form">
-    <div class="input-group">
-        <i class="fas fa-user-plus"></i>
-        <input type="text" id="reg-username" placeholder="Nuevo usuario" required>
-    </div>
-
-    <div class="input-group">
-        <i class="fas fa-key"></i>
-        <input type="password" id="reg-password" placeholder="Nueva contraseña" required>
-    </div>
-
-    <div class="input-group">
-        <i class="fas fa-user-shield"></i>
-        <select id="reg-role" required>
-            <option value="" disabled selected>Selecciona un rol...</option>
-            <option value="user">Rol: Usuario (Tareas)</option>
-            <option value="admin">Rol: Administrador (Proyectos)</option>
-        </select>
-    </div>
-
-    <button type="submit" class="btn-register-submit">Crear cuenta gratuita</button>
-</form>
+                <form id="register-form">
+                    <div class="input-group">
+                        <i class="fas fa-user-plus"></i>
+                        <input type="text" id="reg-username" placeholder="Nuevo usuario" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="reg-password" placeholder="Nueva contraseña" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-user-shield"></i>
+                        <select id="reg-role" required>
+                            <option value="" disabled selected>Selecciona un rol...</option>
+                            <option value="user">Usuario (Tareas)</option>
+                            <option value="admin">Administrador (Proyectos)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-register-submit">Crear cuenta</button>
+                </form>
             </div>
         </div>
     </div>
 
     <div class="app-container hidden">
-        <header class="top-navbar">
-            <div class="nav-left">
-                <div class="profile-container" id="profile-container">
-                    <div class="profile-avatars" id="profile-avatar-btn" title="Gestionar usuario">
-                        <div class="avatar dark" id="current-user-avatar">U</div>
-                    </div>
-                    <div id="user-dropdown" class="user-dropdown hidden">
-                        <div class="dropdown-header">Cambiar de usuario</div>
-                        <ul id="dropdown-user-list"></ul>
-                        <div class="dropdown-divider"></div>
-                        <button id="btn-logout" class="dropdown-item text-danger">
-                            <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-                        </button>
-                    </div>
-                </div>
-                <button class="icon-btn"><i class="far fa-bell"></i></button>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon-small"><i class="fas fa-check-double"></i> TaskMaster</div>
             </div>
-            
-            <nav class="nav-center-pills">
-                <a href="#" class="nav-link"><i class="fas fa-home"></i> Inicio</a>
-                <a href="#" class="nav-link active"><i class="fas fa-check"></i> Tareas</a>
-                <a href="#" class="nav-link"><i class="far fa-flag"></i> Proyectos</a>
-                <a href="#" class="nav-link" id="nav-calendar"><i class="far fa-calendar"></i> Calendarios</a>
-            </nav>
-            
-            <div class="nav-right">
-                <button id="theme-toggle" class="icon-btn" title="Cambiar tema"><i class="fas fa-moon"></i></button>
-                <button class="icon-btn" title="Buscar"><i class="fas fa-search"></i></button>
-                <button id="nav-add-task" class="btn-primary pill"><i class="fas fa-plus"></i> Tarea</button>
+
+            <div class="sidebar-section">
+                <button id="btn-show-home" class="sidebar-item active">
+                    <i class="fas fa-home"></i> Inicio
+                </button>
+                <button id="btn-show-calendar" class="sidebar-item">
+                    <i class="fas fa-calendar-alt"></i> Calendario
+                </button>
             </div>
-        </header>
 
-        <div class="main-layout">
-            <aside class="sidebar">
-                <h2 class="sidebar-main-title">Tasks</h2>
-                
-                <div class="sidebar-section">
-                    <ul id="project-list" class="sidebar-list">
-                        </ul>
-                </div>
+            <div class="sidebar-section">
+                <h3>Tus Proyectos</h3>
+                <ul id="project-list" class="sidebar-list"></ul>
+            </div>
 
-                <div class="sidebar-divider"></div>
-
-                <div class="sidebar-section">
-                    <div class="sidebar-header-flex">
-                        <h3 class="sidebar-subtitle"><i class="fas fa-folder-plus"></i> Nuevo Proyecto</h3>
-                    </div>
-                    <form id="project-form" class="add-form sidebar-form">
-                        <input type="text" id="project-input" placeholder="Nombre..." required>
-                        <button type="submit" title="Añadir"><i class="fas fa-plus"></i></button>
-                    </form>
-                </div>
-
-                <div class="sidebar-bottom" style="display: flex; flex-direction: column; gap: 10px;">
-                    <button id="btn-export" class="btn-primary w-100 pill" style="background: #10b981;">
-                        <i class="fas fa-download"></i> Exportar respaldo
-                    </button>
-                    
-                    <button id="btn-import-trigger" class="btn-primary w-100 pill" style="background: #6366f1;">
-                        <i class="fas fa-upload"></i> Importar respaldo
-                    </button>
-                    <input type="file" id="file-import" accept=".json" class="hidden">
-                    
-                    <button id="btn-clear-all" class="btn-danger w-100 pill">
-                        <i class="fas fa-trash-alt"></i> Borrar datos
-                    </button>
-                </div>
-            </aside>
-
-            <main class="content">
-                <header class="content-header">
-                    <h1 id="current-project-title">Selecciona un proyecto</h1>
-                    <div class="view-toggle">
-                        <button id="btn-manage-members" class="view-btn hidden" style="color: var(--accent-blue); font-weight: bold;">
-                            <i class="fas fa-users"></i> Miembros
-                        </button>
-                        <button id="btn-list-view" class="view-btn active"><i class="fas fa-list"></i> Lista</button>
-                        <button id="btn-kanban-view" class="view-btn"><i class="fas fa-columns"></i> Kanban</button>
-                    </div>
-                </header>
-
-                <div class="list-headers">
-                    <span>Nombre de la tarea</span>
-                    <div class="list-headers-right">
-                        <span>Estado</span>
-                        <span>Prioridad</span>
-                        <span>Responsable</span>
-                    </div>
-                </div>
-
-                <form id="task-form" class="add-task-form hidden">
-                    <input type="text" id="task-input" placeholder="Escribe el nombre de la tarea y presiona Enter..." required>
-                    <select id="task-priority" title="Prioridad">
-                        <option value="baja">Baja</option>
-                        <option value="media" selected>Media</option>
-                        <option value="alta">Alta</option>
-                    </select>
-                    <input type="date" id="task-due-date" title="Fecha de vencimiento">
-                    <button type="submit" class="btn-primary pill"><i class="fas fa-plus"></i></button>
+            <div id="new-project-section" class="sidebar-section mt-auto">
+                <form id="project-form" style="display: flex; gap: 5px;">
+                    <input type="text" id="project-input" placeholder="Nuevo proyecto..." required style="flex-grow: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main);">
+                    <button type="submit" class="btn-primary" style="padding: 10px 15px;"><i class="fas fa-plus"></i></button>
                 </form>
+            </div>
+        </aside>
 
-                <div id="list-view" class="task-list-container">
-                    <div id="task-list" class="task-list"></div>
-                </div>
-
-                <div id="kanban-view" class="kanban-board hidden">
-                    <div class="kanban-column" data-status="pendiente">
-                        <div class="kanban-col-header"><h3>Pendiente <span id="count-pendiente">0</span></h3></div>
-                        <div class="kanban-cards" id="cards-pendiente"></div>
-                    </div>
-                    <div class="kanban-column" data-status="en-progreso">
-                        <div class="kanban-col-header"><h3>En progreso <span id="count-en-progreso">0</span></h3></div>
-                        <div class="kanban-cards" id="cards-en-progreso"></div>
-                    </div>
-                    <div class="kanban-column" data-status="revision">
-                        <div class="kanban-col-header"><h3>Revisión <span id="count-revision">0</span></h3></div>
-                        <div class="kanban-cards" id="cards-revision"></div>
-                    </div>
-                    <div class="kanban-column" data-status="completada">
-                        <div class="kanban-col-header"><h3>Completada <span id="count-completada">0</span></h3></div>
-                        <div class="kanban-cards" id="cards-completada"></div>
+        <div class="main-wrapper">
+            <header class="top-navbar">
+                <button id="theme-toggle" class="icon-btn"><i class="fas fa-moon"></i></button>
+                <div class="profile-container">
+                    <button id="profile-avatar-btn" class="avatar-btn">
+                        <span id="current-user-avatar">U</span>
+                    </button>
+                    <div id="user-dropdown" class="dropdown-menu hidden">
+                        <button id="btn-logout" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
                     </div>
                 </div>
+            </header>
 
-                <div id="stats-section" class="stats-section hidden">
-                    <h2 class="sidebar-subtitle" style="margin-top:20px;"><i class="fas fa-chart-pie"></i> Resumen</h2>
-                    <div class="charts-row">
-                        <div class="chart-box"><canvas id="chart-donut"></canvas></div>
-                        <div class="chart-box"><canvas id="chart-priority"></canvas></div>
-                        <div class="chart-box"><canvas id="chart-status"></canvas></div>
+            <main class="main-content">
+                
+                <div id="dashboard-section" class="dashboard-section">
+                    <div class="dashboard-header">
+                        <h1 id="dashboard-greeting">¡Hola!</h1>
+                        <p>Aquí tienes un resumen de tu espacio de trabajo.</p>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="color: var(--accent-blue); background: rgba(11, 46, 143, 0.1);"><i class="fas fa-tasks"></i></div>
+                            <div class="stat-info"><h3 id="stat-total">0</h3><p>Total Tareas</p></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);"><i class="fas fa-clock"></i></div>
+                            <div class="stat-info"><h3 id="stat-pending">0</h3><p>Pendientes</p></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1);"><i class="fas fa-spinner"></i></div>
+                            <div class="stat-info"><h3 id="stat-progress">0</h3><p>En Progreso</p></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.1);"><i class="fas fa-check-circle"></i></div>
+                            <div class="stat-info"><h3 id="stat-completed">0</h3><p>Completadas</p></div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-columns">
+                        <div class="dashboard-col">
+                            <h3 class="col-title"><i class="fas fa-folder-open"></i> Resumen de Proyectos</h3>
+                            <div id="dashboard-projects-grid" class="projects-grid"></div>
+                        </div>
+                        <div class="dashboard-col">
+                            <h3 class="col-title"><i class="fas fa-bolt"></i> Últimas Acciones</h3>
+                            <div id="dashboard-activity-list" class="activity-list"></div>
+                        </div>
                     </div>
                 </div>
-                <!-- MONKEY-22: Calendario -->
-                <div id="calendar-section" class="calendar-section hidden">
-                    <div class="calendar-header">
-                        <button class="icon-btn" id="cal-prev"><i class="fas fa-chevron-left"></i></button>
-                        <h2 id="cal-month-title">Mes Año</h2>
-                        <button class="icon-btn" id="cal-next"><i class="fas fa-chevron-right"></i></button>
+
+                <div id="calendar-section" class="hidden">
+                    <header class="content-header">
+                        <h1 id="calendar-month-title">Mes Año</h1>
+                        <div class="view-toggle">
+                            <button id="btn-prev-month" class="btn-secondary"><i class="fas fa-chevron-left"></i> Anterior</button>
+                            <button id="btn-next-month" class="btn-secondary">Siguiente <i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </header>
+                    <div class="calendar-container">
+                        <div class="calendar-header-days">
+                            <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+                        </div>
+                        <div id="calendar-grid" class="calendar-grid"></div>
                     </div>
-                    <div class="calendar-weekdays">
-                        <span>Dom</span><span>Lun</span><span>Mar</span>
-                        <span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+                </div>
+
+                <div id="project-view-section" class="hidden">
+                    <header class="content-header">
+                        <h1 id="current-project-title">Proyecto</h1>
+                        <div class="view-toggle">
+                            <button id="btn-manage-members" class="view-btn hidden" style="color: var(--accent-blue); font-weight: bold;"><i class="fas fa-users"></i> Miembros</button>
+                            <button id="btn-list-view" class="view-btn active"><i class="fas fa-list"></i> Lista</button>
+                            <button id="btn-kanban-view" class="view-btn"><i class="fas fa-columns"></i> Kanban</button>
+                            <button id="btn-stats-view" class="view-btn"><i class="fas fa-chart-pie"></i> Resumen</button>
+                        </div>
+                    </header>
+
+                    <form id="task-form" class="task-form">
+                        <input type="text" id="task-input" placeholder="Añadir nueva tarea..." required>
+                        <select id="task-priority">
+                            <option value="baja">Baja</option>
+                            <option value="media">Media</option>
+                            <option value="alta">Alta</option>
+                        </select>
+                        <input type="date" id="task-due-date" title="Fecha límite">
+                        <button type="submit" class="btn-primary">Añadir</button>
+                    </form>
+
+                    <div id="list-view" class="view-section">
+                        <ul id="task-list" class="task-list"></ul>
                     </div>
-                    <div id="calendar-grid" class="calendar-grid"></div>
+
+                    <div id="kanban-view" class="view-section hidden">
+                        <div class="kanban-board" id="kanban-board"></div>
+                    </div>
+
+                    <div id="stats-view" class="view-section hidden">
+                        <div class="charts-row">
+                            <div class="chart-box"><canvas id="chart-donut"></canvas></div>
+                            <div class="chart-box"><canvas id="chart-priority"></canvas></div>
+                            <div class="chart-box"><canvas id="chart-status"></canvas></div>
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>
     </div>
+
     <div id="members-modal" class="modal-overlay hidden">
         <div class="modal-card">
             <h3><i class="fas fa-users-cog"></i> Miembros del Proyecto</h3>
-            
-            <div id="project-members-list" style="margin-bottom: 20px; max-height: 150px; overflow-y: auto; text-align: left;">
-                </div>
-
+            <div id="project-members-list" style="margin-bottom: 20px; max-height: 150px; overflow-y: auto;"></div>
             <form id="add-member-form">
                 <div class="input-group">
-                    <label for="new-member-select">Agregar usuario</label>
+                    <label>Agregar usuario</label>
                     <select id="new-member-select" required></select>
                 </div>
                 <div class="input-group">
-                    <label for="new-member-role">Permiso en este proyecto</label>
+                    <label>Permiso en este proyecto</label>
                     <select id="new-member-role" required>
-                        <option value="user">Usuario (Solo mover y completar tareas)</option>
-                        <option value="admin">Administrador (Editar y borrar tareas)</option>
+                        <option value="user">Usuario (Solo mover tareas)</option>
+                        <option value="admin">Administrador (Editar/Borrar tareas)</option>
                     </select>
                 </div>
                 <div class="modal-actions">
@@ -248,34 +231,31 @@
             </form>
         </div>
     </div>
+
     <div id="edit-task-modal" class="modal-overlay hidden">
         <div class="modal-card">
             <h3><i class="fas fa-edit"></i> Editar Tarea</h3>
             <form id="edit-task-form">
                 <input type="hidden" id="edit-task-id">
-                
                 <div class="input-group">
-                    <label for="edit-task-title">Nombre de la tarea</label>
+                    <label>Nombre de la tarea</label>
                     <input type="text" id="edit-task-title" required>
                 </div>
-                
                 <div class="input-group">
-                    <label for="edit-task-priority">Prioridad</label>
+                    <label>Prioridad</label>
                     <select id="edit-task-priority" required>
                         <option value="baja">Baja</option>
                         <option value="media">Media</option>
                         <option value="alta">Alta</option>
                     </select>
                 </div>
-                
                 <div class="input-group">
-                    <label for="edit-task-date">Fecha de vencimiento</label>
-                    <input type="date" id="edit-task-date" title="Fecha límite">
+                    <label>Fecha de vencimiento</label>
+                    <input type="date" id="edit-task-date">
                 </div>
-                
                 <div class="modal-actions">
                     <button type="button" id="btn-cancel-edit" class="btn-secondary">Cancelar</button>
-                    <button type="submit" class="btn-primary" style="background: var(--accent-blue);">Guardar Cambios</button>
+                    <button type="submit" class="btn-primary" style="background: var(--accent-blue);">Guardar</button>
                 </div>
             </form>
         </div>
@@ -284,5 +264,7 @@
     <script src="js/store.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/stats.js"></script>
 </body>
 </html>

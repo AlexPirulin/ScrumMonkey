@@ -1,80 +1,70 @@
 // ==========================================
-// AUTH.JS - Autenticación y Usuarios
+// AUTH.JS - Autenticación, Login y Tema
 // ==========================================
-// Lógica para el cambio de tema en la pantalla de Login
-const loginThemeToggle = document.getElementById('login-theme-toggle');
 
-if (loginThemeToggle) {
-    loginThemeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark-theme');
-        const isDark = document.body.classList.contains('dark-theme');
-        
-        // Guardar preferencia
-        localStorage.setItem('themePreference', isDark ? 'dark' : 'light');
-        
-        // Cambiar el icono
-        const icon = loginThemeToggle.querySelector('i');
-        if (isDark) {
-            icon.classList.replace('fa-moon', 'fa-sun');
-        } else {
-            icon.classList.replace('fa-sun', 'fa-moon');
+const loginThemeToggle = document.getElementById('login-theme-toggle');
+const appThemeToggle = document.getElementById('theme-toggle');
+
+function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+    const isDark = document.body.classList.contains('dark-theme');
+    localStorage.setItem('themePreference', isDark ? 'dark' : 'light');
+    
+    [loginThemeToggle, appThemeToggle].forEach(btn => {
+        if(btn) {
+            const icon = btn.querySelector('i');
+            if (isDark) icon.classList.replace('fa-moon', 'fa-sun');
+            else icon.classList.replace('fa-sun', 'fa-moon');
         }
     });
+    
+    // Forzar actualización de gráficos si se está en la vista de estadísticas
+    if (typeof renderStats === 'function' && currentProjectId) {
+        renderStats();
+    }
 }
 
-// Aplicar tema guardado al cargar la página
+if (loginThemeToggle) loginThemeToggle.addEventListener('click', toggleTheme);
+if (appThemeToggle) appThemeToggle.addEventListener('click', toggleTheme);
+
 window.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('themePreference') === 'dark') {
         document.body.classList.add('dark-theme');
-        if (loginThemeToggle) {
-            loginThemeToggle.querySelector('i').classList.replace('fa-moon', 'fa-sun');
-        }
+        [loginThemeToggle, appThemeToggle].forEach(btn => {
+            if(btn) btn.querySelector('i').classList.replace('fa-moon', 'fa-sun');
+        });
     }
 });
 
 const loginScreen = document.getElementById('login-screen');
 const appContainer = document.querySelector('.app-container');
-
-// Formularios
 const loginForm = document.getElementById('login-form');
-const loginUsername = document.getElementById('login-username');
-const loginPassword = document.getElementById('login-password');
-
 const registerForm = document.getElementById('register-form');
-const regUsername = document.getElementById('reg-username');
-const regPassword = document.getElementById('reg-password');
-const regRole = document.getElementById('reg-role');
-
+const btnLogout = document.getElementById('btn-logout');
 const profileAvatarBtn = document.getElementById('profile-avatar-btn');
 const userDropdown = document.getElementById('user-dropdown');
-const dropdownUserList = document.getElementById('dropdown-user-list');
-const currentUserAvatar = document.getElementById('current-user-avatar');
-const btnLogout = document.getElementById('btn-logout');
 
 function checkAuth() {
     if (!currentUser) {
-        loginScreen.classList.remove('hidden');
-        appContainer.classList.add('hidden');
+        if(loginScreen) loginScreen.classList.remove('hidden');
+        if(appContainer) appContainer.classList.add('hidden');
     } else {
-        loginScreen.classList.add('hidden');
-        appContainer.classList.remove('hidden');
-        currentUserAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
+        if(loginScreen) loginScreen.classList.add('hidden');
+        if(appContainer) appContainer.classList.remove('hidden');
+        
+        const avatar = document.getElementById('current-user-avatar');
+        if(avatar) avatar.textContent = currentUser.name.charAt(0).toUpperCase();
         
         applyRolePermissions();
-        
         if (typeof initMainApp === 'function') initMainApp();
     }
 }
 
 function applyRolePermissions() {
-    // Busca la sección de crear proyectos (asegúrate de ponerle este id o clase en tu HTML)
-    const newProjectSection = document.querySelector('.sidebar-section:nth-child(3)'); 
-    
+    const newProjectSection = document.getElementById('new-project-section'); 
     if (currentUser.role === 'user') {
-        // El usuario normal no puede crear proyectos
         if (newProjectSection) newProjectSection.style.display = 'none';
     } else {
-        // El administrador sí puede
         if (newProjectSection) newProjectSection.style.display = 'block';
     }
 }
@@ -85,62 +75,51 @@ function loginUser(user) {
     checkAuth();
 }
 
-function logoutUser() {
-    currentUser = null;
-    saveCurrentUser();
-    userDropdown.classList.add('hidden');
-    checkAuth();
+if(loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('login-username').value.trim();
+        const pass = document.getElementById('login-password').value.trim();
+        
+        const user = users.find(u => u.name.toLowerCase() === username.toLowerCase() && u.password === pass);
+        if (user) { loginUser(user); loginForm.reset(); } 
+        else { alert('Usuario o contraseña incorrectos.'); }
+    });
 }
 
-// INICIO DE SESIÓN
-loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = loginUsername.value.trim();
-    const pass = loginPassword.value.trim();
+if(registerForm) {
+    registerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('reg-username').value.trim();
+        const pass = document.getElementById('reg-password').value.trim();
+        const role = document.getElementById('reg-role').value;
 
-    const user = users.find(u => u.name.toLowerCase() === name.toLowerCase() && u.password === pass);
-    
-    if (user) {
-        loginUser(user);
-        loginUsername.value = '';
-        loginPassword.value = '';
-    } else {
-        alert('Usuario o contraseña incorrectos. Por favor intenta de nuevo.');
-    }
-});
+        if (users.find(u => u.name.toLowerCase() === name.toLowerCase())) {
+            alert('El usuario ya existe.'); return;
+        }
 
-// REGISTRO DE NUEVO USUARIO
-registerForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = regUsername.value.trim();
-    const pass = regPassword.value.trim();
-    const role = regRole.value;
+        const newUser = { id: Date.now().toString(), name, password: pass, role };
+        users.push(newUser); saveUsers(); loginUser(newUser); registerForm.reset();
+    });
+}
 
-    if (users.find(u => u.name.toLowerCase() === name.toLowerCase())) {
-        alert('Este nombre de usuario ya existe. Elige otro.');
-        return;
-    }
-
-    const newUser = { id: Date.now().toString(), name: name, password: pass, role: role };
-    users.push(newUser);
-    saveUsers();
-    loginUser(newUser);
-    
-    regUsername.value = '';
-    regPassword.value = '';
-});
-
-// Dropdown Toggle
-profileAvatarBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    userDropdown.classList.toggle('hidden');
-});
+if(profileAvatarBtn) {
+    profileAvatarBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); userDropdown.classList.toggle('hidden');
+    });
+}
 
 document.addEventListener('click', (e) => {
-    if (!profileAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+    if (profileAvatarBtn && userDropdown && !profileAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) {
         userDropdown.classList.add('hidden');
     }
 });
 
-btnLogout.addEventListener('click', logoutUser);
-checkAuth(); // Arranque
+if(btnLogout) {
+    btnLogout.addEventListener('click', () => {
+        currentUser = null; saveCurrentUser();
+        userDropdown.classList.add('hidden'); checkAuth();
+    });
+}
+
+checkAuth();
