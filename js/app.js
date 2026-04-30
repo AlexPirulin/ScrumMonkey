@@ -1,5 +1,5 @@
 // ==========================================
-// APP.JS - Dashboard, Proyectos y Tareas
+// APP.JS - Dashboard, Proyectos y Tareas (OPTIMIZADO)
 // ==========================================
 
 const projectForm = document.getElementById('project-form');
@@ -23,10 +23,9 @@ const statsViewEl = document.getElementById('stats-view');
 function initMainApp() {
     renderProjects();
     showDashboard();
-    restrictDates(); // Restricción para tareas nuevas
+    restrictDates();
 }
 
-// Asegurar que la fecha mínima sea hoy
 function restrictDates() {
     const today = new Date().toISOString().split('T')[0];
     const addTaskDate = document.getElementById('task-due-date');
@@ -57,7 +56,6 @@ function showDashboard() {
 
     const visibleProjects = projects.filter(p => getProjectRole(p) !== null);
     
-    // Contadores actualizados (incluyendo Atasco)
     let tTotal = 0, tPend = 0, tProg = 0, tStuck = 0, tComp = 0;
     visibleProjects.forEach(p => {
         p.tasks.forEach(t => {
@@ -75,30 +73,46 @@ function showDashboard() {
     document.getElementById('stat-stuck').textContent = tStuck;
     document.getElementById('stat-completed').textContent = tComp;
 
+    // OPTIMIZACIÓN: DOM Batching para Proyectos en Dashboard
     const grid = document.getElementById('dashboard-projects-grid');
-    grid.innerHTML = '';
-    if (visibleProjects.length === 0) grid.innerHTML = '<p class="text-muted">Sin proyectos.</p>';
+    let gridHtml = '';
     
-    visibleProjects.forEach(p => {
-        const total = p.tasks.length;
-        const comp = p.tasks.filter(t => t.status === 'completada').length;
-        const percent = total === 0 ? 0 : Math.round((comp / total) * 100);
-        grid.innerHTML += `
-            <div class="dash-project-card pop-in" onclick="selectProject('${p.id}')">
-                <h4>${p.name}</h4>
-                <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted);">
-                    <span>${total} tareas</span><span>${percent}%</span>
-                </div>
-                <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
-            </div>`;
-    });
+    if (visibleProjects.length === 0) {
+        gridHtml = '<p class="text-muted">Sin proyectos.</p>';
+    } else {
+        visibleProjects.forEach(p => {
+            const total = p.tasks.length;
+            const comp = p.tasks.filter(t => t.status === 'completada').length;
+            const percent = total === 0 ? 0 : Math.round((comp / total) * 100);
+            gridHtml += `
+                <div class="dash-project-card pop-in" onclick="selectProject('${p.id}')">
+                    <h4>${p.name}</h4>
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted);">
+                        <span>${total} tareas</span><span>${percent}%</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+                </div>`;
+        });
+    }
+    grid.innerHTML = gridHtml;
 
+    // OPTIMIZACIÓN: DOM Batching para Actividad
     const actList = document.getElementById('dashboard-activity-list');
-    actList.innerHTML = activityLog.length === 0 ? '<p class="text-muted">Sin actividad.</p>' : activityLog.map((log, i) => `
-        <div class="activity-item" style="animation-delay: ${i * 0.05}s;">
-            <i class="fas ${log.icon} act-icon" style="color:var(--text-muted)"></i>
-            <div><div class="act-text">${log.text}</div><span style="font-size:11px; color:var(--text-muted);">${log.date}</span></div>
-        </div>`).join('');
+    let actHtml = '';
+    if (activityLog.length === 0) {
+        actHtml = '<p class="text-muted">Sin actividad.</p>';
+    } else {
+        activityLog.forEach((log, i) => {
+            // Límite de retraso de animación para que no tarde demasiado en pintar
+            const animDelay = Math.min(i * 0.05, 0.5); 
+            actHtml += `
+            <div class="activity-item" style="animation-delay: ${animDelay}s;">
+                <i class="fas ${log.icon} act-icon" style="color:var(--text-muted)"></i>
+                <div><div class="act-text">${log.text}</div><span style="font-size:11px; color:var(--text-muted);">${log.date}</span></div>
+            </div>`;
+        });
+    }
+    actList.innerHTML = actHtml;
 }
 
 // --- GESTIÓN DE PROYECTOS ---
@@ -117,8 +131,10 @@ projectForm.addEventListener('submit', (e) => {
 });
 
 function renderProjects() {
-    projectList.innerHTML = '';
     const visibleProjects = projects.filter(p => getProjectRole(p) !== null);
+    
+    // OPTIMIZACIÓN: Document Fragment (No re-dibuja el sidebar hasta que está listo)
+    const fragment = document.createDocumentFragment();
 
     visibleProjects.forEach(project => {
         const li = document.createElement('li');
@@ -128,8 +144,11 @@ function renderProjects() {
         if (currentUser.role === 'admin') {
             li.innerHTML += `<div class="actions"><button class="icon-btn" onclick="deleteProject('${project.id}', event)"><i class="fas fa-trash"></i></button></div>`;
         }
-        projectList.appendChild(li);
+        fragment.appendChild(li);
     });
+    
+    projectList.innerHTML = '';
+    projectList.appendChild(fragment);
 }
 
 function selectProject(id) {
@@ -159,7 +178,7 @@ window.deleteProject = function(id, e) {
     }
 }
 
-// --- VISTAS: LISTA, KANBAN, STATS ---
+// --- VISTAS ---
 btnListView.addEventListener('click', () => {
     listViewEl.classList.remove('hidden'); kanbanViewEl.classList.add('hidden'); statsViewEl.classList.add('hidden');
     btnListView.classList.add('active'); btnKanbanView.classList.remove('active'); btnStatsView.classList.remove('active');
@@ -195,13 +214,13 @@ function renderTasks() {
     if (!currentProjectId) return;
     const project = projects.find(p => p.id === currentProjectId);
     const listEl = document.getElementById('task-list');
-    listEl.innerHTML = '';
+    
+    // OPTIMIZACIÓN: DOM Batching para la Lista
+    let tasksHtml = '';
+    const role = getProjectRole(project);
 
     project.tasks.forEach((task, index) => {
-        const role = getProjectRole(project);
-        
-        // Incluye el estado Atasco
-        let actionBtns = `<select onchange="changeTaskStatus('${task.id}', this.value)" style="margin-right:10px; border-radius:6px; padding:5px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-main); outline:none; transition:0.2s;">
+        let actionBtns = `<select onchange="changeTaskStatus('${task.id}', this.value)" style="margin-right:10px; border-radius:6px; padding:5px; border:1px solid var(--border-color); background:rgba(255,255,255,0.5); color:var(--text-main); outline:none; transition:0.2s;">
             <option value="pendiente" ${task.status==='pendiente'?'selected':''}>Pendiente</option>
             <option value="en-progreso" ${task.status==='en-progreso'?'selected':''}>En Progreso</option>
             <option value="atasco" ${task.status==='atasco'?'selected':''}>Atasco</option>
@@ -214,8 +233,9 @@ function renderTasks() {
                 <button class="icon-btn" style="color:var(--danger);" onclick="deleteTask('${task.id}')"><i class="fas fa-trash"></i></button>`;
         }
 
-        listEl.innerHTML += `
-            <li class="task-item ${task.status}" style="animation-delay: ${index * 0.05}s;">
+        const animDelay = Math.min(index * 0.05, 0.4); // Evita retrasos de más de 0.4s en listas largas
+        tasksHtml += `
+            <li class="task-item ${task.status}" style="animation-delay: ${animDelay}s;">
                 <div style="display:flex; align-items:center;">
                     <span class="badge ${task.priority}">${task.priority}</span>
                     <strong class="task-title" style="margin-left:15px; font-size:15px;">${task.title}</strong>
@@ -224,6 +244,8 @@ function renderTasks() {
                 <div class="task-actions">${actionBtns}</div>
             </li>`;
     });
+
+    listEl.innerHTML = tasksHtml;
 
     if(!kanbanViewEl.classList.contains('hidden')) renderKanban();
     if(!statsViewEl.classList.contains('hidden') && typeof renderStats === 'function') renderStats();
@@ -248,34 +270,37 @@ function renderKanban() {
     const project = projects.find(p => p.id === currentProjectId);
     const board = document.getElementById('kanban-board');
     
-    // Columnas ahora incluyen 'atasco'
-    const colTitles = {
-        'pendiente': 'Pendiente',
-        'en-progreso': 'En Progreso',
-        'atasco': 'Atasco',
-        'completada': 'Completada'
-    };
+    const colTitles = { 'pendiente': 'Pendiente', 'en-progreso': 'En Progreso', 'atasco': 'Atasco', 'completada': 'Completada' };
     const cols = ['pendiente', 'en-progreso', 'atasco', 'completada'];
     
+    // 1. Dibujamos las columnas vacías una vez
     board.innerHTML = cols.map(c => `
         <div class="kanban-col pop-in" ondragover="allowDrop(event)" ondrop="dropTask(event, '${c}')">
             <h3>${colTitles[c]}</h3>
             <div id="col-${c}" style="min-height:200px; border-radius: 8px; padding-bottom: 20px;"></div>
         </div>`).join('');
 
+    // 2. OPTIMIZACIÓN: Recolectar las tareas primero (Batching por columna)
+    const columnsHtml = { 'pendiente': '', 'en-progreso': '', 'atasco': '', 'completada': '' };
+    
     project.tasks.forEach(t => {
-        const col = document.getElementById(`col-${t.status}`);
-        if(col) {
-            col.innerHTML += `<div class="task-item kanban-card pop-in" draggable="true" ondragstart="dragStart(event, '${t.id}')" ondragend="dragEnd(event)" style="border-left: 4px solid ${t.priority==='alta'?'var(--danger)':t.priority==='media'?'var(--warning)':'var(--success)'};">
+        if(columnsHtml[t.status] !== undefined) {
+            columnsHtml[t.status] += `<div class="task-item kanban-card pop-in" draggable="true" ondragstart="dragStart(event, '${t.id}')" ondragend="dragEnd(event)" style="border-left: 4px solid ${t.priority==='alta'?'var(--danger)':t.priority==='media'?'var(--warning)':'var(--success)'};">
                 <span class="badge ${t.priority}">${t.priority}</span>
                 <strong style="margin-top:8px; display:block;">${t.title}</strong>
                 ${t.dueDate ? `<span style="font-size:11px; color:var(--text-muted); display:block; margin-top:8px;"><i class="fas fa-calendar"></i> ${t.dueDate}</span>` : ''}
             </div>`;
         }
     });
+
+    // 3. Pintar en cada columna
+    cols.forEach(c => {
+        const colEl = document.getElementById(`col-${c}`);
+        if(colEl) colEl.innerHTML = columnsHtml[c];
+    });
 }
 
-// --- MODAL: EDITAR TAREA ---
+// --- MODALES (Edición y Miembros) ---
 const editModal = document.getElementById('edit-task-modal');
 const editForm = document.getElementById('edit-task-form');
 
@@ -287,8 +312,6 @@ window.openEditModal = function(taskId) {
     
     const dateInput = document.getElementById('edit-task-date');
     dateInput.value = task.dueDate || '';
-    
-    // Al editar, la fecha mínima debe ser "Hoy"
     const today = new Date().toISOString().split('T')[0];
     dateInput.setAttribute('min', today);
     
@@ -306,7 +329,6 @@ editForm.addEventListener('submit', (e) => {
     saveProjects(); renderTasks(); editModal.classList.add('hidden');
 });
 
-// --- MODAL: MIEMBROS ---
 const membersModal = document.getElementById('members-modal');
 document.getElementById('btn-manage-members').addEventListener('click', () => { renderMembersModal(); membersModal.classList.remove('hidden'); });
 document.getElementById('btn-close-members').addEventListener('click', () => membersModal.classList.add('hidden'));
@@ -315,23 +337,29 @@ function renderMembersModal() {
     const project = projects.find(p => p.id === currentProjectId);
     if (!project.members) project.members = [{ userId: currentUser.id, role: 'admin' }];
     
+    // OPTIMIZACIÓN: DOM Batching
     const list = document.getElementById('project-members-list');
-    list.innerHTML = project.members.map(m => {
-        const u = users.find(x => x.id === m.userId); if(!u) return '';
-        const badge = m.role === 'admin' ? '<span class="role admin">Admin</span>' : '<span class="role user">Usuario</span>';
-        const deleteBtn = m.userId !== currentUser.id ? `<button class="icon-btn" onclick="removeMember('${m.userId}')" style="color:var(--danger);"><i class="fas fa-times"></i></button>` : '';
-        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border-color);">
-            <span><strong>${u.name}</strong> <span style="margin-left:10px;">${badge}</span></span>${deleteBtn}
-        </div>`;
-    }).join('');
-
-    const select = document.getElementById('new-member-select');
-    select.innerHTML = '<option value="" disabled selected>Selecciona una persona...</option>';
-    users.forEach(u => {
-        if (!project.members.some(m => m.userId === u.id) && u.role !== 'admin') {
-            select.innerHTML += `<option value="${u.id}">${u.name}</option>`;
+    let memHtml = '';
+    project.members.forEach(m => {
+        const u = users.find(x => x.id === m.userId); 
+        if(u) {
+            const badge = m.role === 'admin' ? '<span class="role admin">Admin</span>' : '<span class="role user">Usuario</span>';
+            const deleteBtn = m.userId !== currentUser.id ? `<button class="icon-btn" onclick="removeMember('${m.userId}')" style="color:var(--danger);"><i class="fas fa-times"></i></button>` : '';
+            memHtml += `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border-color);">
+                <span><strong>${u.name}</strong> <span style="margin-left:10px;">${badge}</span></span>${deleteBtn}
+            </div>`;
         }
     });
+    list.innerHTML = memHtml;
+
+    const select = document.getElementById('new-member-select');
+    let selHtml = '<option value="" disabled selected>Selecciona una persona...</option>';
+    users.forEach(u => {
+        if (!project.members.some(m => m.userId === u.id) && u.role !== 'admin') {
+            selHtml += `<option value="${u.id}">${u.name}</option>`;
+        }
+    });
+    select.innerHTML = selHtml;
 }
 
 document.getElementById('add-member-form').addEventListener('submit', (e) => {
@@ -366,7 +394,7 @@ window.dragEnd = function(event) {
 };
 
 window.allowDrop = function(event) {
-    event.preventDefault(); // Permite soltar
+    event.preventDefault(); 
 };
 
 window.dropTask = function(event, newStatus) {

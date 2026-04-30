@@ -1,5 +1,5 @@
 // ==========================================
-// CALENDAR.JS - Módulo de Calendario
+// CALENDAR.JS - Módulo de Calendario (OPTIMIZADO)
 // ==========================================
 
 const calendarSection = document.getElementById('calendar-section');
@@ -26,7 +26,6 @@ function showCalendarView() {
 
 function renderCalendar() {
     if (!calendarGrid) return;
-    calendarGrid.innerHTML = '';
     
     const year = currentCalDate.getFullYear();
     const month = currentCalDate.getMonth();
@@ -42,14 +41,18 @@ function renderCalendar() {
     let tasksWithDates = [];
     visibleProjects.forEach(p => { p.tasks.forEach(t => { if (t.dueDate) tasksWithDates.push({...t, projectName: p.name}); }); });
 
-    for (let i = 0; i < firstDayIndex; i++) { calendarGrid.innerHTML += `<div class="calendar-day empty"></div>`; }
+    // OPTIMIZACIÓN: Construir el HTML en memoria
+    let gridHtml = '';
+
+    for (let i = 0; i < firstDayIndex; i++) { 
+        gridHtml += `<div class="calendar-day empty"></div>`; 
+    }
 
     for (let i = 1; i <= lastDay; i++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
         const dayTasks = tasksWithDates.filter(t => t.dueDate === dateStr);
         
         let tasksHtml = dayTasks.map(t => {
-            // Usamos las variables CSS para que se pinten en Neón al activar modo oscuro
             let colorVar = 'var(--text-muted)'; 
             if (t.status === 'completada') colorVar = 'var(--success)'; 
             else if (t.status === 'atasco') colorVar = 'var(--danger)';
@@ -61,6 +64,9 @@ function renderCalendar() {
         }).join('');
 
         const isTodayClass = (isCurrentMonth && i === today.getDate()) ? 'today' : '';
-        calendarGrid.innerHTML += `<div class="calendar-day ${isTodayClass}"><div class="day-number">${i}</div>${tasksHtml}</div>`;
+        gridHtml += `<div class="calendar-day ${isTodayClass}"><div class="day-number">${i}</div>${tasksHtml}</div>`;
     }
+
+    // Inserción única al DOM
+    calendarGrid.innerHTML = gridHtml;
 }
