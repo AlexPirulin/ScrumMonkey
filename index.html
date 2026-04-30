@@ -111,11 +111,8 @@
                         <input type="file" id="file-import-data" accept=".json" class="hidden">
                         
                         <div style="border-top: 1px solid var(--border-color); margin: 5px 0;"></div>
-                        
                         <button id="btn-logout" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
-                        
                         <div style="border-top: 1px solid var(--border-color); margin: 5px 0;"></div>
-                        
                         <button id="btn-reset-data" class="dropdown-item" style="color: var(--danger); font-weight: bold;"><i class="fas fa-trash-alt"></i> Borrar Todo</button>
                     </div>
                 </div>
@@ -131,23 +128,23 @@
                     
                     <div class="stats-grid">
                         <div class="stat-card pop-in" style="animation-delay: 0.1s;">
-                            <div class="stat-icon" style="color: var(--accent-blue); background: rgba(11, 46, 143, 0.1);"><i class="fas fa-tasks"></i></div>
+                            <div class="stat-icon icon-tasks"><i class="fas fa-tasks"></i></div>
                             <div class="stat-info"><h3 id="stat-total">0</h3><p>Total Tareas</p></div>
                         </div>
                         <div class="stat-card pop-in" style="animation-delay: 0.2s;">
-                            <div class="stat-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);"><i class="fas fa-clock"></i></div>
+                            <div class="stat-icon icon-pending"><i class="fas fa-clock"></i></div>
                             <div class="stat-info"><h3 id="stat-pending">0</h3><p>Pendientes</p></div>
                         </div>
                         <div class="stat-card pop-in" style="animation-delay: 0.3s;">
-                            <div class="stat-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1);"><i class="fas fa-spinner"></i></div>
+                            <div class="stat-icon icon-progress"><i class="fas fa-spinner"></i></div>
                             <div class="stat-info"><h3 id="stat-progress">0</h3><p>En Progreso</p></div>
                         </div>
                         <div class="stat-card pop-in" style="animation-delay: 0.4s;">
-                            <div class="stat-icon" style="color: #ef4444; background: rgba(239, 68, 68, 0.1);"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="stat-icon icon-stuck"><i class="fas fa-exclamation-triangle"></i></div>
                             <div class="stat-info"><h3 id="stat-stuck">0</h3><p>Atascos</p></div>
                         </div>
                         <div class="stat-card pop-in" style="animation-delay: 0.5s;">
-                            <div class="stat-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.1);"><i class="fas fa-check-circle"></i></div>
+                            <div class="stat-icon icon-completed"><i class="fas fa-check-circle"></i></div>
                             <div class="stat-info"><h3 id="stat-completed">0</h3><p>Completadas</p></div>
                         </div>
                     </div>
@@ -269,7 +266,7 @@
                 </div>
                 <div class="modal-actions">
                     <button type="button" id="btn-cancel-edit" class="btn-secondary">Cancelar</button>
-                    <button type="submit" class="btn-primary" style="background: var(--accent-blue);">Guardar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
                 </div>
             </form>
         </div>
@@ -280,7 +277,7 @@
     <script src="js/app.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/stats.js"></script>
-    
-    <script src="js/backup.js"></script> <script src="js/reset.js"></script>
+    <script src="js/backup.js"></script>
+    <script src="js/reset.js"></script>
 </body>
 </html>

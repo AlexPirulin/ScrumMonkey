@@ -49,14 +49,15 @@ function renderCalendar() {
         const dayTasks = tasksWithDates.filter(t => t.dueDate === dateStr);
         
         let tasksHtml = dayTasks.map(t => {
-            let color = '#718096'; 
-            if (t.status === 'completada') color = '#10b981'; 
-            else if (t.status === 'atasco') color = '#ef4444'; // Color Rojo para Atasco
-            else if (t.priority === 'alta') color = '#e53e3e'; 
-            else if (t.priority === 'media') color = '#f59e0b'; 
-            else if (t.priority === 'baja') color = '#3b82f6'; 
+            // Usamos las variables CSS para que se pinten en Neón al activar modo oscuro
+            let colorVar = 'var(--text-muted)'; 
+            if (t.status === 'completada') colorVar = 'var(--success)'; 
+            else if (t.status === 'atasco') colorVar = 'var(--danger)';
+            else if (t.priority === 'alta') colorVar = 'var(--danger)'; 
+            else if (t.priority === 'media') colorVar = 'var(--warning)'; 
+            else if (t.priority === 'baja') colorVar = 'var(--accent-blue)'; 
             
-            return `<div class="cal-task" style="background: ${color};" title="Proyecto: ${t.projectName}">${t.status === 'completada' ? '<i class="fas fa-check"></i> ' : ''}${t.title}</div>`;
+            return `<div class="cal-task" style="background: ${colorVar}; color: #000;" title="Proyecto: ${t.projectName}">${t.status === 'completada' ? '<i class="fas fa-check"></i> ' : ''}${t.title}</div>`;
         }).join('');
 
         const isTodayClass = (isCurrentMonth && i === today.getDate()) ? 'today' : '';
