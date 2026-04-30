@@ -1,5 +1,5 @@
 // ==========================================
-// APP.JS - Dashboard, Proyectos y Tareas (OPTIMIZADO)
+// APP.JS - Dashboard, Proyectos y Tareas (OPTIMIZADO Y GLOBAL)
 // ==========================================
 
 const projectForm = document.getElementById('project-form');
@@ -8,7 +8,13 @@ const projectList = document.getElementById('project-list');
 const dashboardSection = document.getElementById('dashboard-section');
 const projectViewSection = document.getElementById('project-view-section');
 const currentProjectTitle = document.getElementById('current-project-title');
+const projectViewToggles = document.getElementById('project-view-toggles');
+
+// Botones Menú Lateral
 const btnShowHome = document.getElementById('btn-show-home');
+const btnShowGlobalList = document.getElementById('btn-show-global-list');
+const btnShowGlobalKanban = document.getElementById('btn-show-global-kanban');
+const btnShowGlobalStats = document.getElementById('btn-show-global-stats');
 
 const taskForm = document.getElementById('task-form');
 const btnListView = document.getElementById('btn-list-view');
@@ -40,8 +46,20 @@ function getProjectRole(project) {
     return m ? m.role : null;
 }
 
-// --- NAVEGACIÓN Y DASHBOARD ---
+// Búsqueda inteligente de tareas a nivel global
+window.findProjectByTaskId = function(taskId) {
+    for (let p of projects) {
+        if (p.tasks.some(t => t.id === taskId)) return p;
+    }
+    return null;
+}
+
+// --- NAVEGACIÓN GLOBAL ---
 btnShowHome.addEventListener('click', showDashboard);
+
+btnShowGlobalList.addEventListener('click', () => openGlobalView('list', btnShowGlobalList));
+btnShowGlobalKanban.addEventListener('click', () => openGlobalView('kanban', btnShowGlobalKanban));
+btnShowGlobalStats.addEventListener('click', () => openGlobalView('stats', btnShowGlobalStats));
 
 function showDashboard() {
     currentProjectId = null;
@@ -73,7 +91,6 @@ function showDashboard() {
     document.getElementById('stat-stuck').textContent = tStuck;
     document.getElementById('stat-completed').textContent = tComp;
 
-    // OPTIMIZACIÓN: DOM Batching para Proyectos en Dashboard
     const grid = document.getElementById('dashboard-projects-grid');
     let gridHtml = '';
     
@@ -96,14 +113,12 @@ function showDashboard() {
     }
     grid.innerHTML = gridHtml;
 
-    // OPTIMIZACIÓN: DOM Batching para Actividad
     const actList = document.getElementById('dashboard-activity-list');
     let actHtml = '';
     if (activityLog.length === 0) {
         actHtml = '<p class="text-muted">Sin actividad.</p>';
     } else {
         activityLog.forEach((log, i) => {
-            // Límite de retraso de animación para que no tarde demasiado en pintar
             const animDelay = Math.min(i * 0.05, 0.5); 
             actHtml += `
             <div class="activity-item" style="animation-delay: ${animDelay}s;">
@@ -113,6 +128,40 @@ function showDashboard() {
         });
     }
     actList.innerHTML = actHtml;
+}
+
+function openGlobalView(viewType, btnElement) {
+    currentProjectId = null;
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    btnElement.classList.add('active');
+    
+    dashboardSection.classList.add('hidden');
+    document.getElementById('calendar-section')?.classList.add('hidden');
+    projectViewSection.classList.remove('hidden');
+    
+    // Ocultar elementos exclusivos de Proyecto Local
+    projectViewToggles.classList.add('hidden');
+    taskForm.classList.add('hidden'); 
+    document.getElementById('btn-manage-members').classList.add('hidden');
+    
+    // Ocultar las 3 vistas internas
+    listViewEl.classList.add('hidden');
+    kanbanViewEl.classList.add('hidden');
+    statsViewEl.classList.add('hidden');
+
+    if (viewType === 'list') {
+        currentProjectTitle.innerHTML = '<i class="fas fa-list"></i> Todas las Tareas';
+        listViewEl.classList.remove('hidden');
+        renderTasks();
+    } else if (viewType === 'kanban') {
+        currentProjectTitle.innerHTML = '<i class="fas fa-columns"></i> Tablero Global';
+        kanbanViewEl.classList.remove('hidden');
+        renderKanban();
+    } else if (viewType === 'stats') {
+        currentProjectTitle.innerHTML = '<i class="fas fa-chart-pie"></i> Estadísticas Globales';
+        statsViewEl.classList.remove('hidden');
+        if (typeof renderStats === 'function') renderStats();
+    }
 }
 
 // --- GESTIÓN DE PROYECTOS ---
@@ -132,8 +181,6 @@ projectForm.addEventListener('submit', (e) => {
 
 function renderProjects() {
     const visibleProjects = projects.filter(p => getProjectRole(p) !== null);
-    
-    // OPTIMIZACIÓN: Document Fragment (No re-dibuja el sidebar hasta que está listo)
     const fragment = document.createDocumentFragment();
 
     visibleProjects.forEach(project => {
@@ -152,14 +199,22 @@ function renderProjects() {
 }
 
 function selectProject(id) {
-    currentProjectId = id; renderProjects();
+    currentProjectId = id; 
+    renderProjects();
+    
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    // El proyecto ya recibe su clase 'active' dentro de renderProjects()
     
     dashboardSection.classList.add('hidden');
     document.getElementById('calendar-section')?.classList.add('hidden');
     projectViewSection.classList.remove('hidden');
     
     const project = projects.find(p => p.id === id);
-    currentProjectTitle.textContent = project.name;
+    currentProjectTitle.innerHTML = `<i class="fas fa-folder-open"></i> ${project.name}`;
+    
+    // Restaurar Interfaz Local
+    projectViewToggles.classList.remove('hidden');
+    taskForm.classList.remove('hidden');
     document.getElementById('btn-manage-members').classList.toggle('hidden', getProjectRole(project) !== 'admin');
     
     listViewEl.classList.remove('hidden'); kanbanViewEl.classList.add('hidden'); statsViewEl.classList.add('hidden');
@@ -178,10 +233,11 @@ window.deleteProject = function(id, e) {
     }
 }
 
-// --- VISTAS ---
+// --- VISTAS LOCALES DE PROYECTO ---
 btnListView.addEventListener('click', () => {
     listViewEl.classList.remove('hidden'); kanbanViewEl.classList.add('hidden'); statsViewEl.classList.add('hidden');
     btnListView.classList.add('active'); btnKanbanView.classList.remove('active'); btnStatsView.classList.remove('active');
+    renderTasks();
 });
 
 btnKanbanView.addEventListener('click', () => {
@@ -211,15 +267,26 @@ taskForm.addEventListener('submit', (e) => {
 });
 
 function renderTasks() {
-    if (!currentProjectId) return;
-    const project = projects.find(p => p.id === currentProjectId);
     const listEl = document.getElementById('task-list');
+    let tasksToRender = [];
     
-    // OPTIMIZACIÓN: DOM Batching para la Lista
-    let tasksHtml = '';
-    const role = getProjectRole(project);
+    // Si estamos en un proyecto recopilamos sus tareas, sino, recopilamos TODAS.
+    if (currentProjectId) {
+        const project = projects.find(p => p.id === currentProjectId);
+        if(!project) return;
+        tasksToRender = project.tasks.map(t => ({ ...t, parentProject: project }));
+    } else {
+        const visibleProjects = projects.filter(p => getProjectRole(p) !== null);
+        visibleProjects.forEach(p => {
+            tasksToRender = tasksToRender.concat(p.tasks.map(t => ({ ...t, parentProject: p })));
+        });
+    }
 
-    project.tasks.forEach((task, index) => {
+    let tasksHtml = '';
+
+    tasksToRender.forEach((task, index) => {
+        const role = getProjectRole(task.parentProject);
+        
         let actionBtns = `<select onchange="changeTaskStatus('${task.id}', this.value)" style="margin-right:10px; border-radius:6px; padding:5px; border:1px solid var(--border-color); background:rgba(255,255,255,0.5); color:var(--text-main); outline:none; transition:0.2s;">
             <option value="pendiente" ${task.status==='pendiente'?'selected':''}>Pendiente</option>
             <option value="en-progreso" ${task.status==='en-progreso'?'selected':''}>En Progreso</option>
@@ -233,67 +300,83 @@ function renderTasks() {
                 <button class="icon-btn" style="color:var(--danger);" onclick="deleteTask('${task.id}')"><i class="fas fa-trash"></i></button>`;
         }
 
-        const animDelay = Math.min(index * 0.05, 0.4); // Evita retrasos de más de 0.4s en listas largas
+        const projectBadge = !currentProjectId ? `<span class="project-tag"><i class="fas fa-folder"></i> ${task.parentProject.name}</span>` : '';
+        const animDelay = Math.min(index * 0.03, 0.3); 
+
         tasksHtml += `
             <li class="task-item ${task.status}" style="animation-delay: ${animDelay}s;">
-                <div style="display:flex; align-items:center;">
+                <div style="display:flex; align-items:center; flex-wrap: wrap; gap: 10px;">
                     <span class="badge ${task.priority}">${task.priority}</span>
-                    <strong class="task-title" style="margin-left:15px; font-size:15px;">${task.title}</strong>
-                    ${task.dueDate ? `<span style="font-size:12px; color:var(--text-muted); margin-left:15px;"><i class="fas fa-calendar-day"></i> ${task.dueDate}</span>` : ''}
+                    <strong class="task-title" style="font-size:15px;">${task.title}</strong>
+                    ${task.dueDate ? `<span style="font-size:12px; color:var(--text-muted);"><i class="fas fa-calendar-day"></i> ${task.dueDate}</span>` : ''}
+                    ${projectBadge}
                 </div>
                 <div class="task-actions">${actionBtns}</div>
             </li>`;
     });
 
-    listEl.innerHTML = tasksHtml;
-
-    if(!kanbanViewEl.classList.contains('hidden')) renderKanban();
-    if(!statsViewEl.classList.contains('hidden') && typeof renderStats === 'function') renderStats();
+    listEl.innerHTML = tasksHtml.length > 0 ? tasksHtml : '<p style="padding:20px; color:var(--text-muted);">No hay tareas disponibles.</p>';
 }
 
 window.changeTaskStatus = function(taskId, newStatus) {
-    const project = projects.find(p => p.id === currentProjectId);
+    const project = findProjectByTaskId(taskId);
+    if(!project) return;
     const task = project.tasks.find(t => t.id === taskId);
     task.status = newStatus; saveProjects();
     logAction(`movió "${task.title}" a ${newStatus}`, 'fa-exchange-alt');
-    renderTasks();
+    
+    if(!kanbanViewEl.classList.contains('hidden')) renderKanban();
+    else renderTasks();
 }
 
 window.deleteTask = function(taskId) {
-    const project = projects.find(p => p.id === currentProjectId);
+    const project = findProjectByTaskId(taskId);
+    if(!project) return;
     project.tasks = project.tasks.filter(t => t.id !== taskId);
-    saveProjects(); renderTasks();
+    saveProjects(); 
+    
+    if(!kanbanViewEl.classList.contains('hidden')) renderKanban();
+    else renderTasks();
 }
 
 // --- KANBAN DRAG & DROP ---
 function renderKanban() {
-    const project = projects.find(p => p.id === currentProjectId);
     const board = document.getElementById('kanban-board');
     
     const colTitles = { 'pendiente': 'Pendiente', 'en-progreso': 'En Progreso', 'atasco': 'Atasco', 'completada': 'Completada' };
     const cols = ['pendiente', 'en-progreso', 'atasco', 'completada'];
     
-    // 1. Dibujamos las columnas vacías una vez
     board.innerHTML = cols.map(c => `
         <div class="kanban-col pop-in" ondragover="allowDrop(event)" ondrop="dropTask(event, '${c}')">
             <h3>${colTitles[c]}</h3>
             <div id="col-${c}" style="min-height:200px; border-radius: 8px; padding-bottom: 20px;"></div>
         </div>`).join('');
 
-    // 2. OPTIMIZACIÓN: Recolectar las tareas primero (Batching por columna)
+    let tasksToRender = [];
+    if (currentProjectId) {
+        const project = projects.find(p => p.id === currentProjectId);
+        if(project) tasksToRender = project.tasks.map(t => ({ ...t, parentProject: project }));
+    } else {
+        const visibleProjects = projects.filter(p => getProjectRole(p) !== null);
+        visibleProjects.forEach(p => {
+            tasksToRender = tasksToRender.concat(p.tasks.map(t => ({ ...t, parentProject: p })));
+        });
+    }
+
     const columnsHtml = { 'pendiente': '', 'en-progreso': '', 'atasco': '', 'completada': '' };
     
-    project.tasks.forEach(t => {
+    tasksToRender.forEach(t => {
         if(columnsHtml[t.status] !== undefined) {
+            const projectBadge = !currentProjectId ? `<span class="project-tag" style="margin-top:5px; display:inline-block;"><i class="fas fa-folder"></i> ${t.parentProject.name}</span>` : '';
             columnsHtml[t.status] += `<div class="task-item kanban-card pop-in" draggable="true" ondragstart="dragStart(event, '${t.id}')" ondragend="dragEnd(event)" style="border-left: 4px solid ${t.priority==='alta'?'var(--danger)':t.priority==='media'?'var(--warning)':'var(--success)'};">
                 <span class="badge ${t.priority}">${t.priority}</span>
                 <strong style="margin-top:8px; display:block;">${t.title}</strong>
-                ${t.dueDate ? `<span style="font-size:11px; color:var(--text-muted); display:block; margin-top:8px;"><i class="fas fa-calendar"></i> ${t.dueDate}</span>` : ''}
+                ${t.dueDate ? `<span style="font-size:11px; color:var(--text-muted); display:block; margin-top:5px;"><i class="fas fa-calendar"></i> ${t.dueDate}</span>` : ''}
+                ${projectBadge}
             </div>`;
         }
     });
 
-    // 3. Pintar en cada columna
     cols.forEach(c => {
         const colEl = document.getElementById(`col-${c}`);
         if(colEl) colEl.innerHTML = columnsHtml[c];
@@ -305,15 +388,17 @@ const editModal = document.getElementById('edit-task-modal');
 const editForm = document.getElementById('edit-task-form');
 
 window.openEditModal = function(taskId) {
-    const task = projects.find(p => p.id === currentProjectId).tasks.find(t => t.id === taskId);
+    const project = findProjectByTaskId(taskId);
+    if(!project) return;
+    const task = project.tasks.find(t => t.id === taskId);
+    
     document.getElementById('edit-task-id').value = task.id;
     document.getElementById('edit-task-title').value = task.title;
     document.getElementById('edit-task-priority').value = task.priority;
     
     const dateInput = document.getElementById('edit-task-date');
     dateInput.value = task.dueDate || '';
-    const today = new Date().toISOString().split('T')[0];
-    dateInput.setAttribute('min', today);
+    dateInput.setAttribute('min', new Date().toISOString().split('T')[0]);
     
     editModal.classList.remove('hidden');
 };
@@ -322,11 +407,19 @@ document.getElementById('btn-cancel-edit').addEventListener('click', () => editM
 
 editForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const task = projects.find(p => p.id === currentProjectId).tasks.find(t => t.id === document.getElementById('edit-task-id').value);
+    const taskId = document.getElementById('edit-task-id').value;
+    const project = findProjectByTaskId(taskId);
+    const task = project.tasks.find(t => t.id === taskId);
+    
     task.title = document.getElementById('edit-task-title').value.trim();
     task.priority = document.getElementById('edit-task-priority').value;
     task.dueDate = document.getElementById('edit-task-date').value;
-    saveProjects(); renderTasks(); editModal.classList.add('hidden');
+    
+    saveProjects(); 
+    if(!kanbanViewEl.classList.contains('hidden')) renderKanban();
+    else renderTasks();
+    
+    editModal.classList.add('hidden');
 });
 
 const membersModal = document.getElementById('members-modal');
@@ -337,7 +430,6 @@ function renderMembersModal() {
     const project = projects.find(p => p.id === currentProjectId);
     if (!project.members) project.members = [{ userId: currentUser.id, role: 'admin' }];
     
-    // OPTIMIZACIÓN: DOM Batching
     const list = document.getElementById('project-members-list');
     let memHtml = '';
     project.members.forEach(m => {
@@ -384,9 +476,7 @@ window.removeMember = function(userId) {
 window.dragStart = function(event, taskId) {
     event.dataTransfer.setData("taskId", taskId);
     event.dataTransfer.effectAllowed = "move";
-    setTimeout(() => {
-        event.target.classList.add('dragging');
-    }, 0);
+    setTimeout(() => { event.target.classList.add('dragging'); }, 0);
 };
 
 window.dragEnd = function(event) {
@@ -402,7 +492,7 @@ window.dropTask = function(event, newStatus) {
     const taskId = event.dataTransfer.getData("taskId");
     if (!taskId) return;
 
-    const project = projects.find(p => p.id === currentProjectId);
+    const project = findProjectByTaskId(taskId);
     if (!project) return;
 
     const task = project.tasks.find(t => t.id === taskId);
@@ -410,6 +500,6 @@ window.dropTask = function(event, newStatus) {
         task.status = newStatus;
         saveProjects();
         if (typeof logAction === 'function') logAction(`movió "${task.title}" a ${newStatus}`, 'fa-arrows-alt');
-        renderTasks(); 
+        renderKanban(); 
     }
 };

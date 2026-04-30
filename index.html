@@ -89,6 +89,15 @@
                 <button id="btn-show-calendar" class="sidebar-item">
                     <i class="fas fa-calendar-alt"></i> Calendario
                 </button>
+                <button id="btn-show-global-list" class="sidebar-item">
+                    <i class="fas fa-list"></i> Lista Global
+                </button>
+                <button id="btn-show-global-kanban" class="sidebar-item">
+                    <i class="fas fa-columns"></i> Kanban Global
+                </button>
+                <button id="btn-show-global-stats" class="sidebar-item">
+                    <i class="fas fa-chart-pie"></i> Resumen Global
+                </button>
             </div>
 
             <div class="sidebar-section">
@@ -186,7 +195,8 @@
                 <div id="project-view-section" class="hidden">
                     <header class="content-header">
                         <h1 id="current-project-title">Proyecto</h1>
-                        <div class="view-toggle">
+                        
+                        <div id="project-view-toggles" class="view-toggle">
                             <button id="btn-manage-members" class="view-btn hidden" style="color: var(--accent-blue); font-weight: bold;"><i class="fas fa-users"></i> Miembros</button>
                             <button id="btn-list-view" class="view-btn active"><i class="fas fa-list"></i> Lista</button>
                             <button id="btn-kanban-view" class="view-btn"><i class="fas fa-columns"></i> Kanban</button>

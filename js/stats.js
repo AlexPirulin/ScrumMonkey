@@ -1,5 +1,5 @@
 // ==========================================
-// STATS.JS - Módulo de Estadísticas de Proyecto
+// STATS.JS - Módulo de Estadísticas de Proyecto (GLOBAL Y LOCAL)
 // ==========================================
 
 let chartInstanceDonut = null;
@@ -7,22 +7,35 @@ let chartInstancePriority = null;
 let chartInstanceStatus = null;
 
 function renderStats() {
-    if (!currentProjectId) return;
-    const project = projects.find(p => p.id === currentProjectId);
-    if (!project) return;
+    let tasksToProcess = [];
+    let viewTitle = 'Global';
 
-    const tasks = project.tasks;
+    // Determina si recopila tareas de 1 proyecto o de todos
+    if (currentProjectId) {
+        const project = projects.find(p => p.id === currentProjectId);
+        if (!project) return;
+        tasksToProcess = project.tasks;
+        viewTitle = project.name;
+    } else {
+        const visibleProjects = projects.filter(p => typeof getProjectRole === 'function' && getProjectRole(p) !== null);
+        visibleProjects.forEach(p => {
+            tasksToProcess = tasksToProcess.concat(p.tasks);
+        });
+    }
     
-    const completed = tasks.filter(t => t.status === 'completada').length;
-    const pending = tasks.length - completed;
+    // Contadores para Donut
+    const completed = tasksToProcess.filter(t => t.status === 'completada').length;
+    const pending = tasksToProcess.length - completed;
 
-    const pAlta = tasks.filter(t => t.priority === 'alta').length;
-    const pMedia = tasks.filter(t => t.priority === 'media').length;
-    const pBaja = tasks.filter(t => t.priority === 'baja').length;
+    // Contadores para Prioridad
+    const pAlta = tasksToProcess.filter(t => t.priority === 'alta').length;
+    const pMedia = tasksToProcess.filter(t => t.priority === 'media').length;
+    const pBaja = tasksToProcess.filter(t => t.priority === 'baja').length;
 
-    const sPend = tasks.filter(t => t.status === 'pendiente').length;
-    const sProg = tasks.filter(t => t.status === 'en-progreso').length;
-    const sStuck = tasks.filter(t => t.status === 'atasco').length;
+    // Contadores para Estados
+    const sPend = tasksToProcess.filter(t => t.status === 'pendiente').length;
+    const sProg = tasksToProcess.filter(t => t.status === 'en-progreso').length;
+    const sStuck = tasksToProcess.filter(t => t.status === 'atasco').length;
     const sComp = completed;
 
     const isDark = document.body.classList.contains('dark-theme');
@@ -59,7 +72,7 @@ function renderStats() {
                 hoverOffset: 4
             }]
         },
-        options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { display: true, text: 'Progreso General', color: textColor, font: { size: 16 } } } }
+        options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { display: true, text: `Progreso (${viewTitle})`, color: textColor, font: { size: 16 } } } }
     });
 
     // 2. Gráfico de Prioridad
@@ -75,7 +88,7 @@ function renderStats() {
                 hoverOffset: 4
             }]
         },
-        options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { display: true, text: 'Prioridad de Tareas', color: textColor, font: { size: 16 } } } }
+        options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { display: true, text: `Prioridades (${viewTitle})`, color: textColor, font: { size: 16 } } } }
     });
 
     // 3. Gráfico de Estados
@@ -97,7 +110,7 @@ function renderStats() {
                 y: { ticks: { color: textColor, stepSize: 1 }, grid: { color: isDark ? '#232e48' : '#e2e8f0' } },
                 x: { ticks: { color: textColor }, grid: { display: false } }
             },
-            plugins: { ...commonOptions.plugins, title: { display: true, text: 'Distribución por Estado', color: textColor, font: { size: 16 } }, legend: { display: false } } 
+            plugins: { ...commonOptions.plugins, title: { display: true, text: `Distribución (${viewTitle})`, color: textColor, font: { size: 16 } }, legend: { display: false } } 
         }
     });
 }
