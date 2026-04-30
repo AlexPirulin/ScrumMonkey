@@ -106,8 +106,16 @@
                         <span id="current-user-avatar">U</span>
                     </button>
                     <div id="user-dropdown" class="dropdown-menu hidden pop-in">
-                        <button id="btn-logout" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+                        <button id="btn-export-data" class="dropdown-item"><i class="fas fa-file-download"></i> Guardar Respaldo</button>
+                        <button id="btn-import-data" class="dropdown-item"><i class="fas fa-file-upload"></i> Cargar Respaldo</button>
+                        <input type="file" id="file-import-data" accept=".json" class="hidden">
+                        
                         <div style="border-top: 1px solid var(--border-color); margin: 5px 0;"></div>
+                        
+                        <button id="btn-logout" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+                        
+                        <div style="border-top: 1px solid var(--border-color); margin: 5px 0;"></div>
+                        
                         <button id="btn-reset-data" class="dropdown-item" style="color: var(--danger); font-weight: bold;"><i class="fas fa-trash-alt"></i> Borrar Todo</button>
                     </div>
                 </div>
@@ -272,5 +280,7 @@
     <script src="js/app.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/stats.js"></script>
-    <script src="js/reset.js"></script> </body>
+    
+    <script src="js/backup.js"></script> <script src="js/reset.js"></script>
+</body>
 </html>
