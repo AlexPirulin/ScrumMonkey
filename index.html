@@ -15,7 +15,7 @@
             <i class="fas fa-moon"></i>
         </button>
 
-        <div class="login-card">
+        <div class="login-card slide-up">
             <div class="login-header">
                 <div class="logo-icon"><i class="fas fa-check-double"></i></div>
                 <h2>TaskMaster</h2>
@@ -70,7 +70,7 @@
         </div>
     </div>
 
-    <div class="app-container hidden">
+    <div class="app-container hidden fade-in">
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo-icon-small"><i class="fas fa-check-double"></i> TaskMaster</div>
@@ -105,8 +105,10 @@
                     <button id="profile-avatar-btn" class="avatar-btn">
                         <span id="current-user-avatar">U</span>
                     </button>
-                    <div id="user-dropdown" class="dropdown-menu hidden">
+                    <div id="user-dropdown" class="dropdown-menu hidden pop-in">
                         <button id="btn-logout" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+                        <div style="border-top: 1px solid var(--border-color); margin: 5px 0;"></div>
+                        <button id="btn-reset-data" class="dropdown-item" style="color: var(--danger); font-weight: bold;"><i class="fas fa-trash-alt"></i> Borrar Todo</button>
                     </div>
                 </div>
             </header>
@@ -120,30 +122,34 @@
                     </div>
                     
                     <div class="stats-grid">
-                        <div class="stat-card">
+                        <div class="stat-card pop-in" style="animation-delay: 0.1s;">
                             <div class="stat-icon" style="color: var(--accent-blue); background: rgba(11, 46, 143, 0.1);"><i class="fas fa-tasks"></i></div>
                             <div class="stat-info"><h3 id="stat-total">0</h3><p>Total Tareas</p></div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card pop-in" style="animation-delay: 0.2s;">
                             <div class="stat-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);"><i class="fas fa-clock"></i></div>
                             <div class="stat-info"><h3 id="stat-pending">0</h3><p>Pendientes</p></div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card pop-in" style="animation-delay: 0.3s;">
                             <div class="stat-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1);"><i class="fas fa-spinner"></i></div>
                             <div class="stat-info"><h3 id="stat-progress">0</h3><p>En Progreso</p></div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card pop-in" style="animation-delay: 0.4s;">
+                            <div class="stat-icon" style="color: #ef4444; background: rgba(239, 68, 68, 0.1);"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="stat-info"><h3 id="stat-stuck">0</h3><p>Atascos</p></div>
+                        </div>
+                        <div class="stat-card pop-in" style="animation-delay: 0.5s;">
                             <div class="stat-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.1);"><i class="fas fa-check-circle"></i></div>
                             <div class="stat-info"><h3 id="stat-completed">0</h3><p>Completadas</p></div>
                         </div>
                     </div>
 
                     <div class="dashboard-columns">
-                        <div class="dashboard-col">
+                        <div class="dashboard-col slide-up" style="animation-delay: 0.2s;">
                             <h3 class="col-title"><i class="fas fa-folder-open"></i> Resumen de Proyectos</h3>
                             <div id="dashboard-projects-grid" class="projects-grid"></div>
                         </div>
-                        <div class="dashboard-col">
+                        <div class="dashboard-col slide-up" style="animation-delay: 0.3s;">
                             <h3 class="col-title"><i class="fas fa-bolt"></i> Últimas Acciones</h3>
                             <div id="dashboard-activity-list" class="activity-list"></div>
                         </div>
@@ -158,7 +164,7 @@
                             <button id="btn-next-month" class="btn-secondary">Siguiente <i class="fas fa-chevron-right"></i></button>
                         </div>
                     </header>
-                    <div class="calendar-container">
+                    <div class="calendar-container pop-in">
                         <div class="calendar-header-days">
                             <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
                         </div>
@@ -177,14 +183,14 @@
                         </div>
                     </header>
 
-                    <form id="task-form" class="task-form">
+                    <form id="task-form" class="task-form slide-up">
                         <input type="text" id="task-input" placeholder="Añadir nueva tarea..." required>
                         <select id="task-priority">
                             <option value="baja">Baja</option>
                             <option value="media">Media</option>
                             <option value="alta">Alta</option>
                         </select>
-                        <input type="date" id="task-due-date" title="Fecha límite">
+                        <input type="date" id="task-due-date" title="Fecha límite" required>
                         <button type="submit" class="btn-primary">Añadir</button>
                     </form>
 
@@ -197,7 +203,7 @@
                     </div>
 
                     <div id="stats-view" class="view-section hidden">
-                        <div class="charts-row">
+                        <div class="charts-row pop-in">
                             <div class="chart-box"><canvas id="chart-donut"></canvas></div>
                             <div class="chart-box"><canvas id="chart-priority"></canvas></div>
                             <div class="chart-box"><canvas id="chart-status"></canvas></div>
@@ -209,7 +215,7 @@
     </div>
 
     <div id="members-modal" class="modal-overlay hidden">
-        <div class="modal-card">
+        <div class="modal-card pop-in">
             <h3><i class="fas fa-users-cog"></i> Miembros del Proyecto</h3>
             <div id="project-members-list" style="margin-bottom: 20px; max-height: 150px; overflow-y: auto;"></div>
             <form id="add-member-form">
@@ -233,7 +239,7 @@
     </div>
 
     <div id="edit-task-modal" class="modal-overlay hidden">
-        <div class="modal-card">
+        <div class="modal-card pop-in">
             <h3><i class="fas fa-edit"></i> Editar Tarea</h3>
             <form id="edit-task-form">
                 <input type="hidden" id="edit-task-id">
@@ -251,7 +257,7 @@
                 </div>
                 <div class="input-group">
                     <label>Fecha de vencimiento</label>
-                    <input type="date" id="edit-task-date">
+                    <input type="date" id="edit-task-date" required>
                 </div>
                 <div class="modal-actions">
                     <button type="button" id="btn-cancel-edit" class="btn-secondary">Cancelar</button>
@@ -266,5 +272,5 @@
     <script src="js/app.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/stats.js"></script>
-</body>
+    <script src="js/reset.js"></script> </body>
 </html>

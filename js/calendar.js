@@ -51,9 +51,11 @@ function renderCalendar() {
         let tasksHtml = dayTasks.map(t => {
             let color = '#718096'; 
             if (t.status === 'completada') color = '#10b981'; 
+            else if (t.status === 'atasco') color = '#ef4444'; // Color Rojo para Atasco
             else if (t.priority === 'alta') color = '#e53e3e'; 
-            else if (t.priority === 'media') color = '#d97706'; 
+            else if (t.priority === 'media') color = '#f59e0b'; 
             else if (t.priority === 'baja') color = '#3b82f6'; 
+            
             return `<div class="cal-task" style="background: ${color};" title="Proyecto: ${t.projectName}">${t.status === 'completada' ? '<i class="fas fa-check"></i> ' : ''}${t.title}</div>`;
         }).join('');
 

@@ -13,7 +13,7 @@ function renderStats() {
 
     const tasks = project.tasks;
     
-    // Contadores para Donut (Progreso Global)
+    // Contadores para Donut
     const completed = tasks.filter(t => t.status === 'completada').length;
     const pending = tasks.length - completed;
 
@@ -22,26 +22,26 @@ function renderStats() {
     const pMedia = tasks.filter(t => t.priority === 'media').length;
     const pBaja = tasks.filter(t => t.priority === 'baja').length;
 
-    // Contadores para Estados
+    // Contadores para Estados (Ahora incluye ATASCO)
     const sPend = tasks.filter(t => t.status === 'pendiente').length;
     const sProg = tasks.filter(t => t.status === 'en-progreso').length;
+    const sStuck = tasks.filter(t => t.status === 'atasco').length;
     const sComp = completed;
 
-    // Ajuste de color según el tema activo
     const isDark = document.body.classList.contains('dark-theme');
     const textColor = isDark ? '#edf2f7' : '#1a202c';
 
     const commonOptions = {
         responsive: true,
+        animation: { duration: 1000, easing: 'easeOutQuart' }, // Animación de Chart.js fluida
         plugins: { legend: { labels: { color: textColor } } }
     };
 
-    // Destruir gráficos anteriores para evitar superposiciones de Chart.js
     if (chartInstanceDonut) chartInstanceDonut.destroy();
     if (chartInstancePriority) chartInstancePriority.destroy();
     if (chartInstanceStatus) chartInstanceStatus.destroy();
 
-    // 1. Gráfico de Progreso General (Doughnut)
+    // 1. Gráfico de Progreso
     const ctxDonut = document.getElementById('chart-donut').getContext('2d');
     chartInstanceDonut = new Chart(ctxDonut, {
         type: 'doughnut',
@@ -53,10 +53,10 @@ function renderStats() {
                 borderWidth: 0
             }]
         },
-        options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { display: true, text: 'Progreso de Tareas', color: textColor, font: { size: 16 } } } }
+        options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { display: true, text: 'Progreso', color: textColor, font: { size: 16 } } } }
     });
 
-    // 2. Gráfico de Prioridad (Pie)
+    // 2. Gráfico de Prioridad
     const ctxPriority = document.getElementById('chart-priority').getContext('2d');
     chartInstancePriority = new Chart(ctxPriority, {
         type: 'pie',
@@ -64,23 +64,23 @@ function renderStats() {
             labels: ['Alta', 'Media', 'Baja'],
             datasets: [{
                 data: [pAlta, pMedia, pBaja],
-                backgroundColor: ['#e53e3e', '#d97706', '#3b82f6'],
+                backgroundColor: ['#e53e3e', '#f59e0b', '#3b82f6'],
                 borderWidth: 0
             }]
         },
-        options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { display: true, text: 'Nivel de Prioridades', color: textColor, font: { size: 16 } } } }
+        options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { display: true, text: 'Prioridades', color: textColor, font: { size: 16 } } } }
     });
 
-    // 3. Gráfico de Estados (Barra)
+    // 3. Gráfico de Estados (Con Atasco)
     const ctxStatus = document.getElementById('chart-status').getContext('2d');
     chartInstanceStatus = new Chart(ctxStatus, {
         type: 'bar',
         data: {
-            labels: ['Pendiente', 'Progreso', 'Completada'],
+            labels: ['Pendiente', 'Progreso', 'Atasco', 'Completada'],
             datasets: [{
                 label: 'Tareas',
-                data: [sPend, sProg, sComp],
-                backgroundColor: ['#718096', '#3b82f6', '#10b981'],
+                data: [sPend, sProg, sStuck, sComp],
+                backgroundColor: ['#718096', '#3b82f6', '#ef4444', '#10b981'], // Agregado color rojo para Atasco
                 borderRadius: 6
             }]
         },
