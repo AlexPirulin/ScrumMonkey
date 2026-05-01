@@ -41,32 +41,33 @@ function renderCalendar() {
     let tasksWithDates = [];
     visibleProjects.forEach(p => { p.tasks.forEach(t => { if (t.dueDate) tasksWithDates.push({...t, projectName: p.name}); }); });
 
-    // OPTIMIZACIÓN: Construir el HTML en memoria
-    let gridHtml = '';
+    // OPTIMIZACIÓN: requestAnimationFrame
+    requestAnimationFrame(() => {
+        let gridHtml = '';
 
-    for (let i = 0; i < firstDayIndex; i++) { 
-        gridHtml += `<div class="calendar-day empty"></div>`; 
-    }
+        for (let i = 0; i < firstDayIndex; i++) { 
+            gridHtml += `<div class="calendar-day empty"></div>`; 
+        }
 
-    for (let i = 1; i <= lastDay; i++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-        const dayTasks = tasksWithDates.filter(t => t.dueDate === dateStr);
-        
-        let tasksHtml = dayTasks.map(t => {
-            let colorVar = 'var(--text-muted)'; 
-            if (t.status === 'completada') colorVar = 'var(--success)'; 
-            else if (t.status === 'atasco') colorVar = 'var(--danger)';
-            else if (t.priority === 'alta') colorVar = 'var(--danger)'; 
-            else if (t.priority === 'media') colorVar = 'var(--warning)'; 
-            else if (t.priority === 'baja') colorVar = 'var(--accent-blue)'; 
+        for (let i = 1; i <= lastDay; i++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            const dayTasks = tasksWithDates.filter(t => t.dueDate === dateStr);
             
-            return `<div class="cal-task" style="background: ${colorVar}; color: #000;" title="Proyecto: ${t.projectName}">${t.status === 'completada' ? '<i class="fas fa-check"></i> ' : ''}${t.title}</div>`;
-        }).join('');
+            let tasksHtml = dayTasks.map(t => {
+                let colorVar = 'var(--text-muted)'; 
+                if (t.status === 'completada') colorVar = 'var(--success)'; 
+                else if (t.status === 'atasco') colorVar = 'var(--danger)';
+                else if (t.priority === 'alta') colorVar = 'var(--danger)'; 
+                else if (t.priority === 'media') colorVar = 'var(--warning)'; 
+                else if (t.priority === 'baja') colorVar = 'var(--accent-blue)'; 
+                
+                return `<div class="cal-task" style="background: ${colorVar}; color: #000;" title="Proyecto: ${t.projectName}">${t.status === 'completada' ? '<i class="fas fa-check"></i> ' : ''}${t.title}</div>`;
+            }).join('');
 
-        const isTodayClass = (isCurrentMonth && i === today.getDate()) ? 'today' : '';
-        gridHtml += `<div class="calendar-day ${isTodayClass}"><div class="day-number">${i}</div>${tasksHtml}</div>`;
-    }
+            const isTodayClass = (isCurrentMonth && i === today.getDate()) ? 'today' : '';
+            gridHtml += `<div class="calendar-day ${isTodayClass}"><div class="day-number">${i}</div>${tasksHtml}</div>`;
+        }
 
-    // Inserción única al DOM
-    calendarGrid.innerHTML = gridHtml;
+        calendarGrid.innerHTML = gridHtml;
+    });
 }
